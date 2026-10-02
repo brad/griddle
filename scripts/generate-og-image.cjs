@@ -8,11 +8,11 @@ const GAP_POSITIONS = new Set(['1,1', '1,3', '3,1', '3,3']);
 // type: 'green' | 'yellow' | 'dark' | 'gap'
 const grid = [
   [
-    { type: 'green', letter: 'W' },
-    { type: 'green', letter: 'E' },
-    { type: 'green', letter: 'A' },
-    { type: 'green', letter: 'V' },
-    { type: 'green', letter: 'E' },
+    { type: 'green', letter: 'G' },
+    { type: 'green', letter: 'R' },
+    { type: 'green', letter: 'I' },
+    { type: 'green', letter: 'L' },
+    { type: 'green', letter: 'L' },
   ],
   [
     { type: 'dark' },
