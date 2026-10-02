@@ -172,21 +172,21 @@ npm run update-words
 ## Share Format
 
 ```
-Griddle 123 4/10 ⭐⭐⭐⭐
-🟩🟩🟩🟩🟩
-⬛⭐⬛⭐🟩
-🟩⬛🟩⬛⬛
-⬛⭐⬛⭐⬛
-🟩⬛🟩⬛⬛
+Griddle 123 6/10
+🟩 🟩 🟩 🟩 🟩
+🟩 ⭐ 🟩 ⭐ 🟩
+🟩 🟩 🟩 🟩 🟩
+🟩 ⭐ 🟩 ⭐ 🟩
+🟩 🟩 🟩 🟩 🟩
 ```
 
-- Header: "Griddle {number} {guesses}/10" (+ stars for remaining guesses, max 4)
-- Grid: 5x5 emoji grid showing final state
+- Header: "Griddle {number} {guesses made}/10" (Wordle-style; a perfect game is 6/10, the minimum)
+- Grid: 5x5 emoji grid showing final state, squares space-separated
   - 🟩 = green (solved)
   - 🟨 = yellow (hint)
   - ⬛ = gray (wrong)
   - ⬜ = gap (empty)
-  - ⭐ = stars in gap positions (up to 4, for guesses remaining)
+  - ⭐ = stars in gap positions (up to 4, based on guesses remaining: min(4, 10 - guesses))
 
 ## Development
 

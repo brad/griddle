@@ -8,6 +8,9 @@ const GAP_POSITIONS = new Set(['1,1', '1,3', '3,1', '3,3']);
 // Demo board: a real mini-puzzle — GRILL / ALARM / ELECT across,
 // GRADE / IMAGE / LIMIT down. All six are real words; intersections match.
 // (Word set validated against the game's word list by script.)
+// Colors follow the game's real logic: green = confirmed position, yellow =
+// known letter in the wrong spot (only where the word isn't already
+// determined — never 4 greens + 1 yellow in the same word), dark = unknown.
 // type: 'green' | 'yellow' | 'dark' | 'gap'
 const grid = [
   [
@@ -18,25 +21,25 @@ const grid = [
     { type: 'green', letter: 'L' },
   ],
   [
-    { type: 'yellow', letter: 'R' },
+    { type: 'yellow', letter: 'D' },
     { type: 'gap' },
-    { type: 'yellow', letter: 'M' },
+    { type: 'green', letter: 'M' },
     { type: 'gap' },
     { type: 'dark' },
   ],
   [
+    { type: 'green', letter: 'A' },
+    { type: 'yellow', letter: 'R' },
     { type: 'green', letter: 'A' },
     { type: 'yellow', letter: 'L' },
-    { type: 'green', letter: 'A' },
-    { type: 'dark' },
-    { type: 'yellow', letter: 'M' },
+    { type: 'green', letter: 'M' },
   ],
   [
-    { type: 'dark' },
+    { type: 'yellow', letter: 'R' },
     { type: 'gap' },
     { type: 'green', letter: 'G' },
     { type: 'gap' },
-    { type: 'yellow', letter: 'I' },
+    { type: 'dark' },
   ],
   [
     { type: 'green', letter: 'E' },
