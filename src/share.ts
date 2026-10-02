@@ -5,8 +5,8 @@ import { stateAt } from './game';
 const GAP_POSITIONS = [[1,1], [1,3], [3,1], [3,3]] as const;
 
 export function header(puzzleNumber: number, won: boolean, guessCount: number): string {
-  const remaining = Math.max(0, 10 - guessCount);
-  return "Griddle " + puzzleNumber + " " + (won ? remaining : "X") + "/10";
+  // Wordle-style: guesses made, not remaining (a perfect game is 6/10).
+  return "Griddle " + puzzleNumber + " " + (won ? guessCount : "X") + "/10";
 }
 
 function isGap(r: number, c: number): boolean {
@@ -21,24 +21,24 @@ function gridStateEmoji(puzzle: Puzzle, guesses: string[], answers: string[]): s
   const rows: string[] = [];
   let starIndex = 0;
   for (let r = 0; r < 5; r++) {
-    let row = "";
+    const cells: string[] = [];
     for (let c = 0; c < 5; c++) {
       if (!letters[r][c]) {
         if (isGap(r, c) && starIndex < starCount) {
-          row += "⭐";
+          cells.push("⭐");
           starIndex++;
         } else {
-          row += "⬜";
+          cells.push("⬜");
         }
       } else if (finalState.green[r][c]) {
-        row += "🟩";
+        cells.push("🟩");
       } else if (finalState.yellow[r][c]) {
-        row += "🟨";
+        cells.push("🟨");
       } else {
-        row += "⬛";
+        cells.push("⬛");
       }
     }
-    rows.push(row);
+    rows.push(cells.join(" "));
   }
   return rows;
 }

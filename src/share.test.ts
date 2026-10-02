@@ -5,8 +5,9 @@ import { PUZZLES } from './data';
 
 describe('share formatting', () => {
   it('formats header correctly', () => {
-    expect(header(1, true, 4)).toBe('Griddle 1 6/10');
-    expect(header(1, true, 10)).toBe('Griddle 1 0/10');
+    // Wordle-style: guesses made. A perfect game is the minimum 6 guesses.
+    expect(header(1, true, 6)).toBe('Griddle 1 6/10');
+    expect(header(1, true, 10)).toBe('Griddle 1 10/10');
     expect(header(2, false, 10)).toBe('Griddle 2 X/10');
   });
 
@@ -22,6 +23,8 @@ describe('share formatting', () => {
     expect(result).toContain('⬛'); // gray squares
     // With 0 stars remaining (10 guesses), gaps should show ⬜
     expect(result).toContain('⬜');
+    // Squares are space-separated for readability
+    expect(result).toContain('🟩 🟩');
   });
 
   it('shows up to 4 stars for remaining guesses', () => {

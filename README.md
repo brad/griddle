@@ -24,12 +24,12 @@ them all within **10 guesses**.
 Results copy as emoji, ready to paste anywhere:
 
 ```
-Griddle 123 4/10 ⭐⭐⭐⭐
-🟩🟩🟩🟩🟩
-⬛⭐⬛⭐🟩
-🟩⬛🟩⬛⬛
-⬛⭐⬛⭐⬛
-🟩⬛🟩⬛🟩
+Griddle 123 6/10
+🟩 🟩 🟩 🟩 🟩
+🟩 ⭐ 🟩 ⭐ 🟩
+🟩 🟩 🟩 🟩 🟩
+🟩 ⭐ 🟩 ⭐ 🟩
+🟩 🟩 🟩 🟩 🟩
 ```
 
 ## Development
