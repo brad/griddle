@@ -5,6 +5,8 @@ const sharp = require('sharp');
 const GAP_POSITIONS = new Set(['1,1', '1,3', '3,1', '3,3']);
 
 // Grid definition: 5x5
+// Demo board: a real mini-puzzle — GRILL / ALARM / SEVEN across,
+// GLASS / IMAGE / LEMON down. All six are real words; intersections match.
 // type: 'green' | 'yellow' | 'dark' | 'gap'
 const grid = [
   [
@@ -15,32 +17,32 @@ const grid = [
     { type: 'green', letter: 'L' },
   ],
   [
-    { type: 'dark' },
-    { type: 'gap' },
-    { type: 'yellow', letter: 'R' },
-    { type: 'gap' },
     { type: 'green', letter: 'L' },
-  ],
-  [
-    { type: 'dark' },
-    { type: 'dark' },
-    { type: 'yellow', letter: 'O' },
-    { type: 'dark' },
-    { type: 'dark' },
-  ],
-  [
-    { type: 'dark' },
     { type: 'gap' },
-    { type: 'green', letter: 'U' },
+    { type: 'yellow', letter: 'M' },
     { type: 'gap' },
-    { type: 'dark' },
+    { type: 'green', letter: 'E' },
   ],
   [
+    { type: 'green', letter: 'A' },
+    { type: 'green', letter: 'L' },
+    { type: 'green', letter: 'A' },
+    { type: 'green', letter: 'R' },
+    { type: 'green', letter: 'M' },
+  ],
+  [
+    { type: 'green', letter: 'S' },
+    { type: 'gap' },
+    { type: 'green', letter: 'G' },
+    { type: 'gap' },
+    { type: 'green', letter: 'O' },
+  ],
+  [
+    { type: 'green', letter: 'S' },
+    { type: 'green', letter: 'E' },
+    { type: 'green', letter: 'V' },
     { type: 'green', letter: 'E' },
     { type: 'green', letter: 'N' },
-    { type: 'green', letter: 'D' },
-    { type: 'green', letter: 'E' },
-    { type: 'green', letter: 'D' },
   ],
 ];
 
