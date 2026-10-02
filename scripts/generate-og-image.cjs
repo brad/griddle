@@ -100,7 +100,7 @@ const svg = `
   <!-- Left Side: Header & Meta -->
   <g transform="translate(80, 110)">
     <text x="0" y="30" class="title-kicker">DAILY WORD PUZZLE</text>
-    <text x="0" y="105" class="title-main">WEAVLE</text>
+    <text x="0" y="105" class="title-main">GRIDDLE</text>
 
     <text x="0" y="175" class="desc">Find 6 interlocking words in a 5×5 grid weave.</text>
     <text x="0" y="210" class="desc">Solve the daily puzzle in 10 guesses or fewer!</text>

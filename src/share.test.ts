@@ -5,9 +5,9 @@ import { PUZZLES } from './data';
 
 describe('share formatting', () => {
   it('formats header correctly', () => {
-    expect(header(1, true, 4)).toBe('Weavle 1 6/10');
-    expect(header(1, true, 10)).toBe('Weavle 1 0/10');
-    expect(header(2, false, 10)).toBe('Weavle 2 X/10');
+    expect(header(1, true, 4)).toBe('Griddle 1 6/10');
+    expect(header(1, true, 10)).toBe('Griddle 1 0/10');
+    expect(header(2, false, 10)).toBe('Griddle 2 X/10');
   });
 
   it('generates share text with grid emojis and stars', () => {
@@ -17,7 +17,7 @@ describe('share formatting', () => {
     // 10 guesses total = 0 stars, so gaps show ⬜
     const guesses = ['abuse', 'abyss', 'ached', 'acids', 'acorn', 'acres', 'award', 'avail', 'kites', 'aback'];
     const result = share(1, false, guesses, answers, puzzle);
-    expect(result).toContain('Weavle 1 X/10');
+    expect(result).toContain('Griddle 1 X/10');
     expect(result).toContain('🟩');
     expect(result).toContain('⬛'); // gray squares
     // With 0 stars remaining (10 guesses), gaps should show ⬜

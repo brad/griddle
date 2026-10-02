@@ -425,11 +425,11 @@ function renderShare(): void {
 
 function showResults(): void {
   const resTitle = document.getElementById("resultTitle");
-  if (resTitle) resTitle.textContent = won ? "Weavle solved!" : "Weavle — busted";
+  if (resTitle) resTitle.textContent = won ? "Griddle solved!" : "Griddle — busted";
   const resMsg = document.getElementById("resultMessage");
   if (resMsg) {
     resMsg.textContent = won
-      ? "You solved Weavle " + puzzleNumber + " in " + guesses.length + "/10 guesses."
+      ? "You solved Griddle " + puzzleNumber + " in " + guesses.length + "/10 guesses."
       : "You used all 10 guesses.";
   }
   updateStats(won, guesses.length);

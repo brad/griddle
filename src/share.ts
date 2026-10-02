@@ -6,7 +6,7 @@ const GAP_POSITIONS = [[1,1], [1,3], [3,1], [3,3]] as const;
 
 export function header(puzzleNumber: number, won: boolean, guessCount: number): string {
   const remaining = Math.max(0, 10 - guessCount);
-  return "Weavle " + puzzleNumber + " " + (won ? remaining : "X") + "/10";
+  return "Griddle " + puzzleNumber + " " + (won ? remaining : "X") + "/10";
 }
 
 function isGap(r: number, c: number): boolean {
