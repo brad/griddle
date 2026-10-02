@@ -34,30 +34,42 @@ export function score(g: string, t: string): string[] {
 
 export function stateAt(index: number, guesses: string[], answers: string[]): State {
   const green = Array.from({ length: 5 }, () => Array(5).fill(false));
-  const yellow = Array.from({ length: 5 }, () => Array(5).fill(""));
+  const yellow: string[][][] = Array.from({ length: 5 }, () =>
+    Array.from({ length: 5 }, () => [] as string[])
+  );
   if (index < 0) return { green, yellow };
   for (let gi = 0; gi <= index; gi++) {
-    const local = Array.from({ length: 5 }, () => Array(5).fill(""));
+    // Per-cell yellow candidates with the word that produced each one.
+    // A cell can hold up to two candidates (one per crossing word).
+    const local: { letter: string; wi: number }[][][] = Array.from({ length: 5 }, () =>
+      Array.from({ length: 5 }, () => [] as { letter: string; wi: number }[])
+    );
     answers.forEach((word, wi) =>
       score(guesses[gi], word).forEach((mark, i) => {
         const [r, c] = MAP[wi][i];
         if (mark === "g") green[r][c] = true;
-        else if (mark === "y" && !green[r][c]) local[r][c] = guesses[gi][i];
+        else if (mark === "y" && !green[r][c]) local[r][c].push({ letter: guesses[gi][i], wi });
       })
     );
     if (gi === index) {
       for (let r = 0; r < 5; r++) {
         for (let c = 0; c < 5; c++) {
-          if (green[r][c] || !local[r][c]) continue;
-          const letter = local[r][c];
-          const crossing = MAP.map((coords, wi) => [
-            wi,
-            coords.findIndex(p => p[0] === r && p[1] === c)
-          ] as [number, number]).filter(x => x[1] >= 0);
-          const consumed = crossing.some(([wi]) =>
-            MAP[wi].some(([rr, cc], pos) => green[rr][cc] && answers[wi][pos] === letter)
-          );
-          if (!consumed) yellow[r][c] = letter;
+          if (green[r][c]) continue;
+          const seen = new Set<string>();
+          for (const { letter, wi } of local[r][c]) {
+            if (seen.has(letter)) continue;
+            // Only suppress the hint when every occurrence of the letter in
+            // the word that produced it is already revealed. A single green
+            // elsewhere must not hide a genuine duplicate (e.g. "llama").
+            const total = [...answers[wi]].filter(ch => ch === letter).length;
+            const found = MAP[wi].filter(
+              ([rr, cc], pos) => green[rr][cc] && answers[wi][pos] === letter
+            ).length;
+            if (found < total) {
+              yellow[r][c].push(letter);
+              seen.add(letter);
+            }
+          }
         }
       }
     }
