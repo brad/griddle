@@ -1,54 +1,55 @@
-const fs = require('fs');
-const path = require('path');
-const sharp = require('sharp');
+// Generates src/public/og-image.png from a REAL game state.
+//
+// The demo board is not hand-designed: two real guesses ("glare", "alert")
+// are run through the actual game code (stateAt / gridLetters from
+// src/game.ts) against a real mini-puzzle (GRILL / ALARM / ELECT across,
+// GRADE / IMAGE / LIMIT down). Tile colors and letters are rendered exactly
+// like the live game does in src/main.ts:
+//   green tile -> confirmed letter (true letter)
+//   yellow tile -> the guessed letter that scored yellow
+//   dark tile  -> still unknown (empty)
+// Run with: npx vite-node scripts/generate-og-image.ts
+import sharp from 'sharp';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { stateAt, gridLetters, validatePuzzle } from '../src/game';
+import { WORDS } from '../src/words';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const GAP_POSITIONS = new Set(['1,1', '1,3', '3,1', '3,3']);
 
-// Grid definition: 5x5
-// Demo board: a real mini-puzzle — GRILL / ALARM / ELECT across,
-// GRADE / IMAGE / LIMIT down. All six are real words; intersections match.
-// (Word set validated against the game's word list by script.)
-// Colors follow the game's real logic: green = confirmed position, yellow =
-// known letter in the wrong spot (only where the word isn't already
-// determined — never 4 greens + 1 yellow in the same word), dark = unknown.
-// type: 'green' | 'yellow' | 'dark' | 'gap'
-const grid = [
-  [
-    { type: 'green', letter: 'G' },
-    { type: 'green', letter: 'R' },
-    { type: 'green', letter: 'I' },
-    { type: 'green', letter: 'L' },
-    { type: 'green', letter: 'L' },
-  ],
-  [
-    { type: 'yellow', letter: 'D' },
-    { type: 'gap' },
-    { type: 'green', letter: 'M' },
-    { type: 'gap' },
-    { type: 'dark' },
-  ],
-  [
-    { type: 'green', letter: 'A' },
-    { type: 'yellow', letter: 'R' },
-    { type: 'green', letter: 'A' },
-    { type: 'yellow', letter: 'L' },
-    { type: 'green', letter: 'M' },
-  ],
-  [
-    { type: 'yellow', letter: 'R' },
-    { type: 'gap' },
-    { type: 'green', letter: 'G' },
-    { type: 'gap' },
-    { type: 'dark' },
-  ],
-  [
-    { type: 'green', letter: 'E' },
-    { type: 'green', letter: 'L' },
-    { type: 'green', letter: 'E' },
-    { type: 'dark' },
-    { type: 'green', letter: 'T' },
-  ],
-];
+// Demo puzzle: six real words, intersections match (validated below).
+const puzzle = { h: ['grill', 'alarm', 'elect'], v: ['grade', 'image', 'limit'] };
+// Demo play: two real guesses, scored by the real game code.
+const guesses = ['grill', 'amber'];
+
+const errors = validatePuzzle(puzzle);
+if (errors.length > 0) throw new Error('demo puzzle invalid: ' + errors.join('; '));
+for (const g of guesses) {
+  if (!WORDS.includes(g)) throw new Error(`demo guess not in word list: ${g}`);
+}
+
+const answers = [...puzzle.h, ...puzzle.v];
+const letters = gridLetters(puzzle);
+const state = stateAt(guesses.length - 1, guesses, answers);
+
+// Build the grid exactly as the live game renders it (see src/main.ts):
+// green -> true letter, yellow -> guessed letter, dark -> empty.
+type Cell = { type: 'green' | 'yellow' | 'dark' | 'gap'; letter: string };
+const grid: Cell[][] = [];
+for (let r = 0; r < 5; r++) {
+  grid[r] = [];
+  for (let c = 0; c < 5; c++) {
+    if (GAP_POSITIONS.has(`${r},${c}`)) {
+      grid[r][c] = { type: 'gap', letter: '' };
+      continue;
+    }
+    if (state.green[r][c]) grid[r][c] = { type: 'green', letter: letters[r][c].toUpperCase() };
+    else if (state.yellow[r][c]) grid[r][c] = { type: 'yellow', letter: state.yellow[r][c].toUpperCase() };
+    else grid[r][c] = { type: 'dark', letter: '' };
+  }
+}
 
 const styles = {
   green: { bg: '#3aa35a', border: '#2e8a4c', text: '#ffffff' },
@@ -65,10 +66,6 @@ let gridSvg = '';
 
 for (let r = 0; r < 5; r++) {
   for (let c = 0; c < 5; c++) {
-    const key = `${r},${c}`;
-    if (GAP_POSITIONS.has(key)) {
-      continue; // Strictly skip gaps
-    }
     const cell = grid[r][c];
     if (cell.type === 'gap') continue;
 
@@ -142,7 +139,7 @@ sharp(Buffer.from(svg))
   .png()
   .toFile(outputPath)
   .then(() => {
-    console.log('Successfully generated og-image.png at', outputPath);
+    console.log(`og-image.png generated from guesses: ${guesses.join(' -> ')}`);
   })
   .catch((err) => {
     console.error('Error generating og-image.png:', err);
