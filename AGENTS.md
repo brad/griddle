@@ -43,12 +43,12 @@ Gap positions (always empty): (1,1), (1,3), (3,1), (3,3)
 
 ### Scoring
 
-Each guess is scored against all 6 answer words simultaneously using Wordle rules:
+Each guess is scored against all 6 answer words simultaneously:
 - **Green (🟩)**: Letter correct in that exact position
 - **Yellow (🟨)**: Letter exists in word but different position
 - **Gray (⬛)**: Letter not in word
 
-Duplicate letters follow Wordle rules: each target word's letter can only be matched once.
+Duplicate letters: each target word's letter can only be matched once.
 
 ### Daily Puzzle Selection
 
@@ -180,7 +180,7 @@ Griddle 123 6/10
 🟩 🟩 🟩 🟩 🟩
 ```
 
-- Header: "Griddle {number} {guesses made}/10" (Wordle-style; a perfect game is 6/10, the minimum)
+- Header: "Griddle {number} {guesses made}/10" (a perfect game is 6/10, the minimum)
 - Grid: 5x5 emoji grid showing final state, squares space-separated
   - 🟩 = green (solved)
   - 🟨 = yellow (hint)

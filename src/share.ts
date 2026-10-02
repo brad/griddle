@@ -5,7 +5,7 @@ import { stateAt } from './game';
 const GAP_POSITIONS = [[1,1], [1,3], [3,1], [3,3]] as const;
 
 export function header(puzzleNumber: number, won: boolean, guessCount: number): string {
-  // Wordle-style: guesses made, not remaining (a perfect game is 6/10).
+  // Guesses made, not remaining (a perfect game is 6/10).
   return "Griddle " + puzzleNumber + " " + (won ? guessCount : "X") + "/10";
 }
 

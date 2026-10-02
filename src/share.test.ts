@@ -5,7 +5,7 @@ import { PUZZLES } from './data';
 
 describe('share formatting', () => {
   it('formats header correctly', () => {
-    // Wordle-style: guesses made. A perfect game is the minimum 6 guesses.
+    // Guesses made. A perfect game is the minimum 6 guesses.
     expect(header(1, true, 6)).toBe('Griddle 1 6/10');
     expect(header(1, true, 10)).toBe('Griddle 1 10/10');
     expect(header(2, false, 10)).toBe('Griddle 2 X/10');
