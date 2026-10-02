@@ -34,8 +34,33 @@ let over = false;
 let won = false;
 let mainSlideTimeout: ReturnType<typeof setTimeout> | null = null;
 
+// Storage keys. Renamed weavle_* -> griddle_* with the 2026-10-02 rebrand;
+// migrateStorageKeys() carries existing players' data forward exactly once.
+const LS_GAME = "griddle_game";
+const LS_STATS = "griddle_stats";
+const LS_HELP_DISMISSED = "griddle_help_dismissed";
+const LEGACY_KEYS: Array<[string, string]> = [
+  ["weavle_game", LS_GAME],
+  ["weavle_stats", LS_STATS],
+  ["weavle_help_dismissed", LS_HELP_DISMISSED],
+];
+
+export function migrateStorageKeys(): void {
+  for (const [oldKey, newKey] of LEGACY_KEYS) {
+    try {
+      if (localStorage.getItem(newKey) === null) {
+        const oldValue = localStorage.getItem(oldKey);
+        if (oldValue !== null) localStorage.setItem(newKey, oldValue);
+      }
+      localStorage.removeItem(oldKey);
+    } catch {
+      // Storage unavailable (private mode etc.) — the game works without it.
+    }
+  }
+}
+
 function loadStats(): Stats {
-  const stored = localStorage.getItem("weavle_stats");
+  const stored = localStorage.getItem(LS_STATS);
   if (stored) {
     try {
       return JSON.parse(stored);
@@ -58,7 +83,7 @@ function defaultStats(): Stats {
 }
 
 function saveStats(stats: Stats): void {
-  localStorage.setItem("weavle_stats", JSON.stringify(stats));
+  localStorage.setItem(LS_STATS, JSON.stringify(stats));
 }
 
 function saveGameState(): void {
@@ -70,17 +95,17 @@ function saveGameState(): void {
     over,
     won
   };
-  localStorage.setItem("weavle_game", JSON.stringify(state));
+  localStorage.setItem(LS_GAME, JSON.stringify(state));
 }
 
 function loadGameState(): GameState | null {
-  const stored = localStorage.getItem("weavle_game");
+  const stored = localStorage.getItem(LS_GAME);
   if (!stored) return null;
   try {
     const state = JSON.parse(stored);
     const today = dayNumber();
     if (state.puzzleNumber !== today) {
-      localStorage.removeItem("weavle_game");
+      localStorage.removeItem(LS_GAME);
       return null;
     }
     return state;
@@ -90,7 +115,7 @@ function loadGameState(): GameState | null {
 }
 
 function clearGameState(): void {
-  localStorage.removeItem("weavle_game");
+  localStorage.removeItem(LS_GAME);
 }
 
 function updateStats(won: boolean, guessCount: number): void {
@@ -472,12 +497,13 @@ function reset(): void {
 
 // Event Listeners setup
 function initUI(): void {
+  migrateStorageKeys();
   const help = document.getElementById("help");
   const results = document.getElementById("results");
   const stats = document.getElementById("stats");
 
   // Check localStorage for dismissed help
-  const helpDismissed = localStorage.getItem("weavle_help_dismissed") === "true";
+  const helpDismissed = localStorage.getItem(LS_HELP_DISMISSED) === "true";
   if (!helpDismissed && help) {
     help.classList.add("show");
     startDemoLoop();
@@ -501,7 +527,7 @@ function initUI(): void {
       e?.preventDefault();
       help?.classList.remove("show");
       stopDemoLoop();
-      localStorage.setItem("weavle_help_dismissed", "true");
+      localStorage.setItem(LS_HELP_DISMISSED, "true");
     };
     closeHelp.onclick = hideHelp;
     closeHelp.addEventListener("touchstart", hideHelp, { passive: false });
