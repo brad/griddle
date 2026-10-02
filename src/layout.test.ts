@@ -36,8 +36,8 @@ describe('UI Layout and CSS Constraints', () => {
     const htmlContent = fs.readFileSync(htmlPath, 'utf8');
 
     expect(htmlContent).toContain('<meta property="og:url" content="https://brad.github.io/griddle/">');
-    expect(htmlContent).toContain('<meta property="og:image" content="https://brad.github.io/griddle/og-image.png">');
-    expect(htmlContent).toContain('<meta property="og:image:secure_url" content="https://brad.github.io/griddle/og-image.png">');
-    expect(htmlContent).toContain('<meta name="twitter:image" content="https://brad.github.io/griddle/og-image.png">');
+    expect(htmlContent).toContain('<meta property="og:image" content="https://brad.github.io/griddle/og-image.gif">');
+    expect(htmlContent).toContain('<meta property="og:image:secure_url" content="https://brad.github.io/griddle/og-image.gif">');
+    expect(htmlContent).toContain('<meta name="twitter:image" content="https://brad.github.io/griddle/og-image.gif">');
   });
 });

@@ -1,28 +1,37 @@
-// Generates src/public/og-image.png from a REAL game state.
+// Generates src/public/og-image.gif — an animated full-game replay.
 //
-// The demo board is not hand-designed: two real guesses ("glare", "alert")
-// are run through the actual game code (stateAt / gridLetters from
+// Seven real guesses (grill -> amber -> alarm -> elect -> grade -> image ->
+// limit) are played through the actual game code (stateAt / gridLetters from
 // src/game.ts) against a real mini-puzzle (GRILL / ALARM / ELECT across,
-// GRADE / IMAGE / LIMIT down). Tile colors and letters are rendered exactly
-// like the live game does in src/main.ts:
-//   green tile -> confirmed letter (true letter)
-//   yellow tile -> the guessed letter that scored yellow
-//   dark tile  -> still unknown (empty)
+// GRADE / IMAGE / LIMIT down). Every frame renders tiles exactly like the
+// live game does in src/main.ts: green = confirmed letter, yellow = the
+// guessed letter, dark = unknown. Tiles that change between guesses flip
+// over, then the final solved board holds before the loop restarts.
+//
+// Note: most link-preview crawlers (X, Facebook, iMessage) show only the
+// GIF's first frame as a static image; Discord animates it. The first frame
+// is the guess-1 board (GRILL solved), so the static fallback still looks
+// like a real game.
+//
 // Run with: npx vite-node scripts/generate-og-image.ts
-import sharp from 'sharp';
+import { writeFileSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import sharp from 'sharp';
+import { GIFEncoder, quantize, applyPalette } from 'gifenc';
 import { stateAt, gridLetters, validatePuzzle } from '../src/game';
 import { WORDS } from '../src/words';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const W = 1200;
+const H = 630;
 const GAP_POSITIONS = new Set(['1,1', '1,3', '3,1', '3,3']);
 
 // Demo puzzle: six real words, intersections match (validated below).
 const puzzle = { h: ['grill', 'alarm', 'elect'], v: ['grade', 'image', 'limit'] };
-// Demo play: two real guesses, scored by the real game code.
-const guesses = ['grill', 'amber'];
+// Demo game: a full solve, played for real by the game code.
+const guesses = ['grill', 'amber', 'alarm', 'elect', 'grade', 'image', 'limit'];
 
 const errors = validatePuzzle(puzzle);
 if (errors.length > 0) throw new Error('demo puzzle invalid: ' + errors.join('; '));
@@ -32,26 +41,34 @@ for (const g of guesses) {
 
 const answers = [...puzzle.h, ...puzzle.v];
 const letters = gridLetters(puzzle);
-const state = stateAt(guesses.length - 1, guesses, answers);
 
-// Build the grid exactly as the live game renders it (see src/main.ts):
-// green -> true letter, yellow -> guessed letter, dark -> empty.
-type Cell = { type: 'green' | 'yellow' | 'dark' | 'gap'; letter: string };
-const grid: Cell[][] = [];
-for (let r = 0; r < 5; r++) {
-  grid[r] = [];
-  for (let c = 0; c < 5; c++) {
-    if (GAP_POSITIONS.has(`${r},${c}`)) {
-      grid[r][c] = { type: 'gap', letter: '' };
-      continue;
-    }
-    if (state.green[r][c]) grid[r][c] = { type: 'green', letter: letters[r][c].toUpperCase() };
-    else if (state.yellow[r][c]) grid[r][c] = { type: 'yellow', letter: state.yellow[r][c].toUpperCase() };
-    else grid[r][c] = { type: 'dark', letter: '' };
-  }
+type TileType = 'green' | 'yellow' | 'dark';
+interface Tile {
+  type: TileType;
+  letter: string; // display letter, '' when dark
 }
 
-const styles = {
+// Tiles exactly as the live game renders them (see src/main.ts):
+// green -> true letter, yellow -> guessed letter, dark -> empty.
+function tilesFor(stage: number): (Tile | null)[][] {
+  const st = stateAt(stage, guesses, answers);
+  const out: (Tile | null)[][] = [];
+  for (let r = 0; r < 5; r++) {
+    out[r] = [];
+    for (let c = 0; c < 5; c++) {
+      if (GAP_POSITIONS.has(`${r},${c}`)) {
+        out[r][c] = null;
+        continue;
+      }
+      if (st.green[r][c]) out[r][c] = { type: 'green', letter: letters[r][c].toUpperCase() };
+      else if (st.yellow[r][c]) out[r][c] = { type: 'yellow', letter: st.yellow[r][c].toUpperCase() };
+      else out[r][c] = { type: 'dark', letter: '' };
+    }
+  }
+  return out;
+}
+
+const styles: Record<TileType, { bg: string; border: string; text: string }> = {
   green: { bg: '#3aa35a', border: '#2e8a4c', text: '#ffffff' },
   yellow: { bg: '#c9a227', border: '#a78316', text: '#211900' },
   dark: { bg: '#243044', border: '#718098', text: '#e8eef7' },
@@ -62,28 +79,53 @@ const cellGap = 12;
 const gridStartX = 690;
 const gridStartY = 101;
 
-let gridSvg = '';
+// Stars earned for finishing with guesses to spare, exactly like share.ts:
+// one star per remaining guess (10 - guessCount), up to the 4 gaps.
+const starCount = Math.min(4, Math.max(0, 10 - guesses.length));
+const starPositions: [number, number][] = [[1, 1], [1, 3], [3, 1], [3, 3]].slice(0, starCount);
 
-for (let r = 0; r < 5; r++) {
-  for (let c = 0; c < 5; c++) {
-    const cell = grid[r][c];
-    if (cell.type === 'gap') continue;
-
-    const x = gridStartX + c * (cellSize + cellGap);
-    const y = gridStartY + r * (cellSize + cellGap);
-    const style = styles[cell.type];
-
-    gridSvg += `
-      <g transform="translate(${x}, ${y})">
-        <rect width="${cellSize}" height="${cellSize}" rx="12" fill="${style.bg}" stroke="${style.border}" stroke-width="3"/>
-        ${cell.letter ? `<text x="${cellSize / 2}" y="${cellSize / 2 + 14}" font-family="system-ui, -apple-system, sans-serif" font-size="40" font-weight="800" fill="${style.text}" text-anchor="middle">${cell.letter}</text>` : ''}
-      </g>
-    `;
+function starPoints(r: number): string {
+  const pts: string[] = [];
+  for (let k = 0; k < 10; k++) {
+    const rad = k % 2 === 0 ? r : r * 0.42;
+    const a = -Math.PI / 2 + (k * Math.PI) / 5;
+    pts.push(`${(rad * Math.cos(a)).toFixed(1)},${(rad * Math.sin(a)).toFixed(1)}`);
   }
+  return pts.join(' ');
 }
 
-const svg = `
-<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+function starsSvg(scale: number): string {
+  if (scale <= 0 || starPositions.length === 0) return '';
+  let s = '';
+  for (const [r, c] of starPositions) {
+    const cx = gridStartX + c * (cellSize + cellGap) + cellSize / 2;
+    const cy = gridStartY + r * (cellSize + cellGap) + cellSize / 2;
+    s += `<g transform="translate(${cx},${cy}) scale(${scale.toFixed(3)})">` +
+      `<polygon points="${starPoints(24)}" fill="#ffd54a"/></g>`;
+  }
+  return s;
+}
+
+function tileSvg(r: number, c: number, tile: Tile, flipSy?: number): string {
+  const x = gridStartX + c * (cellSize + cellGap);
+  const y = gridStartY + r * (cellSize + cellGap);
+  const style = styles[tile.type];
+  const inner = `
+        <rect width="${cellSize}" height="${cellSize}" rx="12" fill="${style.bg}" stroke="${style.border}" stroke-width="3"/>
+        ${tile.letter ? `<text x="${cellSize / 2}" y="${cellSize / 2 + 14}" font-family="system-ui, -apple-system, sans-serif" font-size="40" font-weight="800" fill="${style.text}" text-anchor="middle">${tile.letter}</text>` : ''}`;
+  const flip =
+    flipSy === undefined
+      ? inner
+      : `<g transform="translate(${cellSize / 2},0) scale(1,${flipSy.toFixed(3)}) translate(${-cellSize / 2},0)">${inner}</g>`;
+  return `
+      <g transform="translate(${x}, ${y})">
+        ${flip}
+      </g>`;
+}
+
+function sceneSvg(grid: string, overlay = ''): string {
+  return `
+<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <radialGradient id="bg" cx="50%" cy="-10%" r="1100" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#1c2a40"/>
@@ -98,7 +140,7 @@ const svg = `
   </defs>
 
   <!-- Background -->
-  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="${W}" height="${H}" fill="url(#bg)"/>
 
   <!-- Left Side: Header & Meta -->
   <g transform="translate(80, 110)">
@@ -110,17 +152,14 @@ const svg = `
 
     <!-- Badges -->
     <g transform="translate(0, 270)">
-      <!-- Badge 1: 🧩 6 Words -->
       <g transform="translate(0, 0)">
         <rect x="0" y="0" width="130" height="42" rx="21" fill="#1a2332" stroke="#52627a" stroke-width="1.5"/>
         <text x="65" y="26" class="badge-text" text-anchor="middle">🧩 6 Words</text>
       </g>
-      <!-- Badge 2: 🎯 10 Guesses -->
       <g transform="translate(142, 0)">
         <rect x="0" y="0" width="145" height="42" rx="21" fill="#1a2332" stroke="#52627a" stroke-width="1.5"/>
         <text x="72.5" y="26" class="badge-text" text-anchor="middle">🎯 10 Guesses</text>
       </g>
-      <!-- Badge 3: 📅 Daily Challenge -->
       <g transform="translate(299, 0)">
         <rect x="0" y="0" width="175" height="42" rx="21" fill="#1a2332" stroke="#52627a" stroke-width="1.5"/>
         <text x="87.5" y="26" class="badge-text" text-anchor="middle">📅 Daily Challenge</text>
@@ -129,19 +168,109 @@ const svg = `
   </g>
 
   <!-- Right Side: 5x5 Grid -->
-  ${gridSvg}
-</svg>
-`;
+  ${grid}
+  ${overlay}
+</svg>`;
+}
 
-const outputPath = path.resolve(__dirname, '../src/public/og-image.png');
+function gridSvg(tiles: (Tile | null)[][], flips?: Map<string, { tile: Tile; sy: number }>): string {
+  let out = '';
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 5; c++) {
+      const tile = tiles[r][c];
+      if (!tile) continue;
+      const flip = flips?.get(`${r},${c}`);
+      out += tileSvg(r, c, flip ? flip.tile : tile, flip ? Math.max(flip.sy, 0.02) : undefined);
+    }
+  }
+  return out;
+}
 
-sharp(Buffer.from(svg))
-  .png()
-  .toFile(outputPath)
-  .then(() => {
-    console.log(`og-image.png generated from guesses: ${guesses.join(' -> ')}`);
-  })
-  .catch((err) => {
-    console.error('Error generating og-image.png:', err);
-    process.exit(1);
-  });
+interface Frame {
+  svg: string;
+  delayMs: number;
+}
+
+const HOLD_MS = 800;
+const FINAL_HOLD_MS = 1600;
+const FLIP_FRAMES = 6;
+const FLIP_DELAY_MS = 70;
+
+function sameTile(a: Tile, b: Tile): boolean {
+  return a.type === b.type && a.letter === b.letter;
+}
+
+function buildFrames(): Frame[] {
+  const stages = guesses.map((_, i) => tilesFor(i));
+  const frames: Frame[] = [];
+  const pushBoard = (stage: number, delayMs: number, starScale: number) =>
+    frames.push({ svg: sceneSvg(gridSvg(stages[stage]), starsSvg(starScale)), delayMs });
+
+  for (let i = 0; i < stages.length; i++) {
+    pushBoard(i, i === stages.length - 1 ? 700 : HOLD_MS, 0);
+    if (i === stages.length - 1) break;
+    // Tiles that change between this stage and the next, row-major.
+    const changed: { r: number; c: number; from: Tile; to: Tile }[] = [];
+    for (let r = 0; r < 5; r++) {
+      for (let c = 0; c < 5; c++) {
+        const from = stages[i][r][c];
+        const to = stages[i + 1][r][c];
+        if (from && to && !sameTile(from, to)) changed.push({ r, c, from, to });
+      }
+    }
+    for (let k = 0; k < FLIP_FRAMES; k++) {
+      const t = k / (FLIP_FRAMES - 1);
+      const flips = new Map<string, { tile: Tile; sy: number }>();
+      changed.forEach(({ r, c, from, to }, idx) => {
+        // Slight stagger across tiles so the flip ripples.
+        const stagger = changed.length > 1 ? (idx / (changed.length - 1)) * 0.35 : 0;
+        const local = Math.min(Math.max((t - stagger) / (1 - 0.35), 0), 1);
+        const face = local < 0.5 ? from : to;
+        const sy = Math.abs(Math.cos(Math.PI * local));
+        flips.set(`${r},${c}`, { tile: face, sy });
+      });
+      frames.push({ svg: sceneSvg(gridSvg(stages[i], flips)), delayMs: FLIP_DELAY_MS });
+    }
+  }
+  // Win: stars pop into the gaps, then hold on the finished board.
+  for (const s of [0.3, 1.15, 1]) pushBoard(stages.length - 1, 90, s);
+  pushBoard(stages.length - 1, FINAL_HOLD_MS, 1);
+  return frames;
+}
+
+async function rasterize(svg: string): Promise<Uint8ClampedArray> {
+  const { data, info } = await sharp(Buffer.from(svg))
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  if (info.width !== W || info.height !== H) throw new Error(`unexpected frame size ${info.width}x${info.height}`);
+  return new Uint8ClampedArray(data.buffer, data.byteOffset, data.length);
+}
+
+async function main() {
+  const frames = buildFrames();
+  console.log(`rendering ${frames.length} frames...`);
+  const gif = GIFEncoder();
+  let palette: number[][] | undefined;
+  for (let i = 0; i < frames.length; i++) {
+    const rgba = await rasterize(frames[i].svg);
+    if (i === 0) palette = quantize(rgba, 256);
+    const index = applyPalette(rgba, palette!);
+    gif.writeFrame(index, W, H, {
+      palette,
+      delay: frames[i].delayMs,
+      repeat: i === 0 ? 0 : undefined,
+    });
+    if ((i + 1) % 10 === 0 || i === frames.length - 1) console.log(`  frame ${i + 1}/${frames.length}`);
+  }
+  gif.finish();
+  const out = path.resolve(__dirname, '../src/public/og-image.gif');
+  writeFileSync(out, gif.bytes());
+  const kb = Math.round(gif.bytes().length / 1024);
+  console.log(`og-image.gif written (${kb} KB), game: ${guesses.join(' -> ')}`);
+}
+
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});

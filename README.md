@@ -1,6 +1,6 @@
 # Griddle
 
-![Griddle — find six interlocking five-letter words in a 5×5 grid](src/public/og-image.png)
+![Griddle — find six interlocking five-letter words in a 5×5 grid](src/public/og-image.gif)
 
 **Griddle** is a daily word puzzle. Six five-letter words — three across, three
 down — are woven together into a 5×5 grid, sharing nine intersections. Find
