@@ -19,7 +19,7 @@ const DEMO_TITLES = [
   "Yellow hints — one square shows two",
   "Green squares lock in",
   "Double letter: one green, one yellow",
-  "O is yellow below, but its square is already green",
+  "O is yellow, but its square is green",
 ];
 
 let currentDemoIndex = 0;

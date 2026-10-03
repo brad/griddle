@@ -538,6 +538,8 @@ button:disabled {
   font-weight: 700;
   color: var(--text);
   margin-bottom: 8px;
+  /* Reserve two lines so longer titles don't shift the layout. */
+  min-height: 2.5em;
 }
 
 /* Non-interactive demo keyboard: compact, display-only */
