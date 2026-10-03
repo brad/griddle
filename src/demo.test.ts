@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, beforeEach } from "vitest";
-import { renderDemoBoard, renderDemoKeyboard, initDemo, stopDemoLoop, resetDemoState } from "./demo";
+import { renderDemoBoard, initDemo, stopDemoLoop, resetDemoState } from "./demo";
 
 describe("demo board", () => {
   beforeEach(() => {
@@ -102,6 +102,19 @@ describe("demo board", () => {
     expect(byLetter.get("R")?.classList.contains("yellow")).toBe(true);
     // non-interactive: spans, not buttons
     expect(byLetter.get("A")?.tagName).toBe("SPAN");
+  });
+
+  it("keeps the same keyboard when switching tabs, like the real game", () => {
+    resetDemoState();
+    renderDemoBoard(0, false);
+    const before = document.getElementById("demoKeyboard")?.innerHTML;
+    // 'l' is already green on tab 1 even though it comes from guess 2 ("least"):
+    // the keyboard summarizes all guesses, not the selected one.
+    const lKey = Array.from(document.querySelectorAll<HTMLElement>("#demoKeyboard .demo-key"))
+      .find((k) => k.textContent === "L");
+    expect(lKey?.classList.contains("green")).toBe(true);
+    renderDemoBoard(3, false);
+    expect(document.getElementById("demoKeyboard")?.innerHTML).toBe(before);
   });
 
   it("shows double-e as green + yellow for guess 3 ('creep')", () => {

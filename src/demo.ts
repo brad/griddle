@@ -83,7 +83,7 @@ export function renderDemoBoard(index: number, animate: boolean | SlideDirection
   });
   if (title) title.textContent = DEMO_TITLES[index];
   timelineLabel.textContent = "Showing board after guess " + (index + 1) + ": " + DEMO_GUESSES[index].toUpperCase();
-  renderDemoKeyboard(index);
+  renderDemoKeyboard();
 
   if (direction === 'none') {
     fillBoard(board1);
@@ -134,12 +134,12 @@ export function renderDemoBoard(index: number, animate: boolean | SlideDirection
   }
 }
 
-// Non-interactive keyboard showing the cumulative key colors up to the
-// selected demo guess — what the real keyboard looks like at that point.
-export function renderDemoKeyboard(index: number): void {
+// Non-interactive keyboard showing the cumulative key colors across all demo
+// guesses, exactly like the real game: it does not change when switching tabs.
+export function renderDemoKeyboard(): void {
   const kb = document.getElementById("demoKeyboard");
   if (!kb) return;
-  const s = keyState(DEMO_GUESSES.slice(0, index + 1), DEMO_ANSWERS);
+  const s = keyState(DEMO_GUESSES, DEMO_ANSWERS);
   kb.innerHTML = "";
   KEY_ROWS.forEach((row) => {
     const r = document.createElement("div");
