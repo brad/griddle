@@ -256,7 +256,9 @@ export function renderBoard(direction: SlideDirection = 'none'): void {
 
   const fillBoard = (targetBoard: HTMLElement) => {
     targetBoard.innerHTML = "";
-    const starSet = over
+    // Stars are earned for the win: show them only when viewing the final
+    // guess, not when flipping back through earlier guesses.
+    const starSet = over && selected === guesses.length - 1
       ? new Set(starPositions(guesses.length).map(([sr, sc]) => sr * 5 + sc))
       : new Set<number>();
     for (let r = 0; r < 5; r++) {
