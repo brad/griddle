@@ -7,8 +7,15 @@
 const fs = require('fs');
 
 const wordsContent = fs.readFileSync('src/words.ts', 'utf8');
-const words = wordsContent.match(/'([a-z]{5})'/g).map(w => w.slice(1, -1));
-const wordSet = new Set(words);
+// Build puzzles from the ANSWERS pool (curated answer words) so generated
+// puzzles use fair, familiar words; the full WORDS list is for guess validation.
+const answersMatch = wordsContent.match(/export const ANSWERS: string\[\] = \[([\s\S]*?)\];/);
+if (!answersMatch) throw new Error('Could not parse ANSWERS from src/words.ts');
+// Six words removed from the upstream answer list after its acquisition
+// (obscure: agora, pupal, fibre; insensitive: lynch, slave, wench).
+// They remain valid guesses.
+const EXCLUDED = new Set(['agora', 'pupal', 'lynch', 'fibre', 'slave', 'wench']);
+const words = answersMatch[1].match(/'([a-z]{5})'/g).map(w => w.slice(1, -1)).filter(w => !EXCLUDED.has(w));
 
 const byPattern = new Map();
 for (const w of words) {
