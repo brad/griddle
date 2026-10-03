@@ -2,7 +2,9 @@ import { initDemo, startDemoLoop, stopDemoLoop } from './demo';
 import { Puzzle } from './types';
 import { PUZZLES, VALID, KEY_ROWS } from './data';
 import { dayNumber, stateAt, gridLetters, keyState, complete } from './game';
-import { share } from './share';
+import { paintCell } from './cell';
+import { share, starPositions } from './share';
+import { buildAndShareGif } from './gif';
 
 interface Stats {
   played: number;
@@ -254,15 +256,19 @@ export function renderBoard(direction: SlideDirection = 'none'): void {
 
   const fillBoard = (targetBoard: HTMLElement) => {
     targetBoard.innerHTML = "";
+    const starSet = over
+      ? new Set(starPositions(guesses.length).map(([sr, sc]) => sr * 5 + sc))
+      : new Set<number>();
     for (let r = 0; r < 5; r++) {
       for (let c = 0; c < 5; c++) {
         const d = document.createElement("div");
-        if (!letters[r][c]) {
-          d.className = "cell gap";
-        } else {
-          d.className = "cell" + (s.green[r][c] ? " revealed" : s.yellow[r][c] ? " hint" : "");
-          d.textContent = s.green[r][c] ? letters[r][c] : (s.yellow[r][c] || "");
-        }
+        paintCell(d, {
+          green: s.green[r][c],
+          hints: s.yellow[r][c],
+          letter: letters[r][c],
+          star: starSet.has(r * 5 + c),
+        });
+        if (animateStars && starSet.has(r * 5 + c)) d.classList.add("pop");
         targetBoard.appendChild(d);
       }
     }
@@ -315,6 +321,7 @@ export function renderBoard(direction: SlideDirection = 'none'): void {
       mainSlideTimeout = null;
     }, 250);
   }
+  animateStars = false;
 }
 
 function renderTyped(): void {
@@ -426,6 +433,7 @@ function submit(): void {
   if (answers.every(w => guesses.includes(w)) || complete(s)) {
     over = true;
     won = true;
+    animateStars = true;
     message("Solved in " + guesses.length + " guesses.");
     setTimeout(() => showResults(), 250);
     saveGameState();
@@ -449,6 +457,8 @@ function renderShare(): void {
 }
 
 function showResults(): void {
+  // Repaint the finished board so earned stars appear in the gaps.
+  renderBoard('none');
   const resTitle = document.getElementById("resultTitle");
   if (resTitle) resTitle.textContent = won ? "Griddle solved!" : "Griddle — busted";
   const resMsg = document.getElementById("resultMessage");
@@ -474,6 +484,60 @@ async function copyShare(): Promise<void> {
     }, 1200);
   } catch {
     prompt("Copy results:", shareContent);
+  }
+}
+
+function closeShareMenu(): void {
+  document.getElementById("shareMenu")?.setAttribute("hidden", "");
+  document.getElementById("shareMenuBtn")?.setAttribute("aria-expanded", "false");
+}
+
+async function shareGifFlow(): Promise<void> {
+  const opt = document.getElementById("shareGifOpt") as HTMLButtonElement | null;
+  closeShareMenu();
+  if (!opt || opt.disabled) return;
+  const original = opt.innerHTML;
+  opt.disabled = true;
+  opt.innerHTML = "Making GIF…";
+  try {
+    const how = await buildAndShareGif({ puzzleNumber, guesses, answers, puzzle, won });
+    message(how === "shared" ? "GIF shared!" : "GIF downloaded — text copied.");
+  } catch (e) {
+    // Dismissing the system share sheet throws AbortError; stay silent then.
+    if (e instanceof DOMException && e.name === "AbortError") return;
+    message("Couldn't make the GIF. Try text instead?", true);
+  } finally {
+    opt.disabled = false;
+    opt.innerHTML = original;
+  }
+}
+
+let shareMenuWired = false;
+// One-shot flag: the next board paint pops earned stars in, then clears.
+let animateStars = false;
+
+function initShareMenu(): void {
+  const menuBtn = document.getElementById("shareMenuBtn");
+  const menu = document.getElementById("shareMenu");
+  const textOpt = document.getElementById("shareTextOpt");
+  const gifOpt = document.getElementById("shareGifOpt");
+  if (!menuBtn || !menu) return;
+  menuBtn.onclick = (e) => {
+    e.stopPropagation();
+    const isHidden = menu.hasAttribute("hidden");
+    if (isHidden) {
+      menu.removeAttribute("hidden");
+      menuBtn.setAttribute("aria-expanded", "true");
+    } else {
+      closeShareMenu();
+    }
+  };
+  menu.onclick = (e) => e.stopPropagation();
+  if (textOpt) textOpt.onclick = () => { closeShareMenu(); copyShare(); };
+  if (gifOpt) gifOpt.onclick = () => { shareGifFlow(); };
+  if (!shareMenuWired) {
+    shareMenuWired = true;
+    document.addEventListener("click", closeShareMenu);
   }
 }
 
@@ -561,9 +625,11 @@ function initUI(): void {
 
   const copyShareBtn = document.getElementById("copyShare");
   if (copyShareBtn) copyShareBtn.onclick = copyShare;
+  initShareMenu();
 
   document.onkeydown = (e: KeyboardEvent) => {
     if (e.key === "Escape") {
+      closeShareMenu();
       if (help?.classList.contains("show")) stopDemoLoop();
       help?.classList.remove("show");
       results?.classList.remove("show");

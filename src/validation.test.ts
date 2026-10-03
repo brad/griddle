@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { validatePuzzle, validateAllPuzzles } from "./validation";
-import { PUZZLES, VALID } from "./data";
+import { PUZZLES, VALID, VALID_ANSWERS, EXCLUDED_ANSWERS } from "./data";
 import { Puzzle } from "./types";
 
 describe("puzzle validation", () => {
@@ -8,6 +8,25 @@ describe("puzzle validation", () => {
     expect(() => validateAllPuzzles(PUZZLES, VALID)).not.toThrow();
     PUZZLES.forEach(puzzle => {
       expect(validatePuzzle(puzzle, VALID)).toEqual([]);
+    });
+  });
+
+  it("uses only curated answer words for puzzle answers", () => {
+    // Answer-list policy: answers must be familiar (2,315 answers),
+    // not merely guessable (12,972). Locks in the 2026-10-02 migration.
+    PUZZLES.forEach(puzzle => {
+      [...puzzle.h, ...puzzle.v].forEach(word => {
+        expect(VALID_ANSWERS.has(word)).toBe(true);
+      });
+    });
+  });
+
+  it("excludes words removed from the upstream answer list", () => {
+    // Mirrors the upstream policy (see EXCLUDED_ANSWERS in data.ts).
+    PUZZLES.forEach(puzzle => {
+      [...puzzle.h, ...puzzle.v].forEach(word => {
+        expect(EXCLUDED_ANSWERS.has(word)).toBe(false);
+      });
     });
   });
 

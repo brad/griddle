@@ -49,6 +49,18 @@ describe("demo board", () => {
     expect(cells[14].textContent).toBe("t");
   });
 
+  it("shows both hint letters where two words cross for guess 1 ('acres')", () => {
+    resetDemoState();
+    renderDemoBoard(0, false);
+    // (2,4) is row 2, column 4 -> cell index 14: 's' from "least", 'r' from "entry"
+    const cells = document.querySelectorAll("#demoBoard1 .cell");
+    const dual = cells[14];
+    expect(dual.classList.contains("hint2")).toBe(true);
+    expect(dual.children.length).toBe(2);
+    expect(dual.children[0].textContent).toBe("s");
+    expect(dual.children[1].textContent).toBe("r");
+  });
+
   it("allows switching tabs manually", () => {
     resetDemoState();
     initDemo();

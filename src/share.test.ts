@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect } from 'vitest';
-import { header, share } from './share';
+import { header, share, starPositions } from './share';
 import { PUZZLES } from './data';
 
 describe('share formatting', () => {
@@ -34,5 +34,20 @@ describe('share formatting', () => {
     const result = share(1, true, guesses, answers, puzzle);
     const starCount = (result.match(/⭐/g) || []).length;
     expect(starCount).toBeLessThanOrEqual(4);
+  });
+
+  it('share text puts 4 stars in the gaps after a 6-guess win', () => {
+    const puzzle = PUZZLES[0];
+    const answers = [...puzzle.h, ...puzzle.v];
+    const guesses = ['aaaaa', 'bbbbb', 'ccccc', 'ddddd', 'eeeee', 'fffff'];
+    const result = share(1, true, guesses, answers, puzzle);
+    expect((result.match(/⭐/g) || []).length).toBe(4);
+  });
+
+  it('starPositions fills gaps in order, capped at 4', () => {
+    expect(starPositions(6)).toEqual([[1, 1], [1, 3], [3, 1], [3, 3]]);
+    expect(starPositions(9)).toEqual([[1, 1]]);
+    expect(starPositions(10)).toEqual([]);
+    expect(starPositions(1)).toEqual([[1, 1], [1, 3], [3, 1], [3, 3]]);
   });
 });

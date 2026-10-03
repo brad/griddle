@@ -9,30 +9,28 @@ export function header(puzzleNumber: number, won: boolean, guessCount: number): 
   return "Griddle " + puzzleNumber + " " + (won ? guessCount : "X") + "/10";
 }
 
-function isGap(r: number, c: number): boolean {
-  return GAP_POSITIONS.some(([gr, gc]) => gr === r && gc === c);
+// Gap cells that earn a star, in fill order. Mirrors the share-text grid:
+// one star per remaining guess, up to 4. Exported so the finished board
+// can show the same stars the share text does.
+export function starPositions(guessCount: number): [number, number][] {
+  const remaining = Math.max(0, 10 - guessCount);
+  const starCount = Math.min(4, remaining);
+  return GAP_POSITIONS.slice(0, starCount).map(([r, c]) => [r, c] as [number, number]);
 }
 
 function gridStateEmoji(puzzle: Puzzle, guesses: string[], answers: string[]): string[] {
   const letters = gridLetters(puzzle);
   const finalState = stateAt(guesses.length - 1, guesses, answers);
-  const remaining = Math.max(0, 10 - guesses.length);
-  const starCount = Math.min(4, remaining);
+  const stars = new Set(starPositions(guesses.length).map(([r, c]) => r * 5 + c));
   const rows: string[] = [];
-  let starIndex = 0;
   for (let r = 0; r < 5; r++) {
     const cells: string[] = [];
     for (let c = 0; c < 5; c++) {
       if (!letters[r][c]) {
-        if (isGap(r, c) && starIndex < starCount) {
-          cells.push("⭐");
-          starIndex++;
-        } else {
-          cells.push("⬜");
-        }
+        cells.push(stars.has(r * 5 + c) ? "⭐" : "⬜");
       } else if (finalState.green[r][c]) {
         cells.push("🟩");
-      } else if (finalState.yellow[r][c]) {
+      } else if (finalState.yellow[r][c].length) {
         cells.push("🟨");
       } else {
         cells.push("⬛");
