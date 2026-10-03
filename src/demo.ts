@@ -83,7 +83,7 @@ export function renderDemoBoard(index: number, animate: boolean | SlideDirection
   });
   if (title) title.textContent = DEMO_TITLES[index];
   timelineLabel.textContent = "Showing board after guess " + (index + 1) + ": " + DEMO_GUESSES[index].toUpperCase();
-  renderDemoKeyboard();
+  renderDemoKeyboard(index);
 
   if (direction === 'none') {
     fillBoard(board1);
@@ -134,13 +134,15 @@ export function renderDemoBoard(index: number, animate: boolean | SlideDirection
   }
 }
 
-// Non-interactive keyboard showing the cumulative key colors across all demo
-// guesses, exactly like the real game: it does not change when switching tabs.
-export function renderDemoKeyboard(): void {
+// Non-interactive keyboard showing the key colors for the viewed demo guess,
+// exactly like the real game: it follows the selected tab, and dims while
+// reviewing an earlier guess.
+export function renderDemoKeyboard(index: number): void {
   const kb = document.getElementById("demoKeyboard");
   if (!kb) return;
-  const s = keyState(DEMO_GUESSES, DEMO_ANSWERS);
+  const s = keyState(DEMO_GUESSES.slice(0, index + 1), DEMO_ANSWERS);
   kb.innerHTML = "";
+  kb.classList.toggle("reviewing", index < DEMO_GUESSES.length - 1);
   KEY_ROWS.forEach((row) => {
     const r = document.createElement("div");
     r.className = "key-row";

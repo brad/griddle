@@ -104,17 +104,24 @@ describe("demo board", () => {
     expect(byLetter.get("A")?.tagName).toBe("SPAN");
   });
 
-  it("keeps the same keyboard when switching tabs, like the real game", () => {
+  it("follows the viewed tab and dims while reviewing, like the real game", () => {
     resetDemoState();
     renderDemoBoard(0, false);
-    const before = document.getElementById("demoKeyboard")?.innerHTML;
-    // 'l' is already green on tab 1 even though it comes from guess 2 ("least"):
-    // the keyboard summarizes all guesses, not the selected one.
+    const kb = document.getElementById("demoKeyboard");
+    const keyOn = (n: number, letter: string) => {
+      renderDemoBoard(n, false);
+      return Array.from(document.querySelectorAll<HTMLElement>("#demoKeyboard .demo-key"))
+        .find((k) => k.textContent === letter);
+    };
+    // Tab 1: only guess 1's letters — 'l' (from guess 2 "least") not yet green.
+    expect(keyOn(0, "L")?.classList.contains("green")).toBe(false);
+    expect(kb?.classList.contains("reviewing")).toBe(true);
+    // Latest tab: full keyboard, not dimmed.
+    renderDemoBoard(3, false);
+    expect(kb?.classList.contains("reviewing")).toBe(false);
     const lKey = Array.from(document.querySelectorAll<HTMLElement>("#demoKeyboard .demo-key"))
       .find((k) => k.textContent === "L");
     expect(lKey?.classList.contains("green")).toBe(true);
-    renderDemoBoard(3, false);
-    expect(document.getElementById("demoKeyboard")?.innerHTML).toBe(before);
   });
 
   it("shows double-e as green + yellow for guess 3 ('creep')", () => {
