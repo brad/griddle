@@ -538,6 +538,8 @@ button:disabled {
   font-weight: 700;
   color: var(--text);
   margin-bottom: 8px;
+  /* Reserve two lines so longer titles don't shift the layout. */
+  min-height: 2.5em;
 }
 
 /* Non-interactive demo keyboard: compact, display-only */
@@ -557,6 +559,12 @@ button:disabled {
 /* Reviewing an earlier guess: dim the demo keyboard like the real game does. */
 .demo-keyboard.reviewing {
   opacity: 0.4;
+}
+.demo-words {
+  margin: 10px 0 0;
+  font-size: .75rem;
+  color: var(--muted);
+  text-align: center;
 }
 
 /* Demo board slide animation */
@@ -643,7 +651,7 @@ button:disabled {
   }
 }
 </style>
-  <script type="module" crossorigin src="./assets/index-DvwpCE_i.js"></script>
+  <script type="module" crossorigin src="./assets/index-BNTUCUJ1.js"></script>
 </head>
 <body>
 <header>
@@ -686,6 +694,7 @@ button:disabled {
     </div>
   </div>
   <div class="demo-keyboard" id="demoKeyboard"></div>
+  <p class="demo-words">Demo words — across: SNAKE · LEAST · EVERY · down: SOLVE · AWARE · ENTRY</p>
 </div><p class="source-link">Griddle is open source — <a href="https://github.com/brad/griddle" target="_blank" rel="noopener">view the code on GitHub</a>.</p><div class="close-row"><button class="primary" id="closeHelp">Play</button></div></div></div>
 <div class="overlay" id="results"><div class="modal"><h2 id="resultTitle">Griddle</h2><p id="resultMessage"></p><p class="share-result" id="shareText"></p><div class="close-row"><div class="split-btn"><button id="copyShare">Copy results</button><button id="shareMenuBtn" aria-label="More share options" aria-haspopup="menu" aria-expanded="false">▾</button><div class="share-menu" id="shareMenu" role="menu" hidden><button id="shareTextOpt" role="menuitem">Copy as text</button><button id="shareGifOpt" role="menuitem">Share as GIF<span class="pill">experimental</span></button></div></div><button class="primary" id="closeResults">Close</button></div></div></div>
 <div class="overlay" id="stats"><div class="modal"><h2>Statistics</h2><div id="statsContent"></div><div class="close-row"><button class="primary" id="closeStats">Close</button></div></div></div>
