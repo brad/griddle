@@ -87,7 +87,7 @@ describe("demo board", () => {
     const title = document.getElementById("demoTitle");
     expect(title?.textContent).toContain("two");
     renderDemoBoard(2, false);
-    expect(title?.textContent).toContain("Double letter");
+    expect(title?.textContent).toContain("two E's");
   });
 
   it("renders a non-interactive keyboard with cumulative colors", () => {

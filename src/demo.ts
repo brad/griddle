@@ -16,10 +16,10 @@ const DEMO_ANSWERS = [...DEMO_PUZZLE.h, ...DEMO_PUZZLE.v];
 //  spool: O is yellow on the keyboard, but its hint square is already green
 const DEMO_GUESSES = ["acres", "least", "creep", "spool"];
 const DEMO_TITLES = [
-  "Yellow hints — one square shows two",
+  "One square shows two hints: S and R",
   "Green squares lock in",
-  "Double letter: one green, one yellow",
-  "O is yellow below, but its square is already green",
+  "EVERY's two E's: one green, one yellow",
+  "O is in SOLVE, but its square has L",
 ];
 
 let currentDemoIndex = 0;
