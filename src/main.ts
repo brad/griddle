@@ -36,6 +36,13 @@ let over = false;
 let won = false;
 let mainSlideTimeout: ReturnType<typeof setTimeout> | null = null;
 
+// Review mode: the player is viewing an older guess. Board, keyboard, and
+// input reflect the game as of that guess; typing is disabled until they
+// return to the latest guess.
+function isReviewing(): boolean {
+  return selected >= 0 && selected < guesses.length - 1;
+}
+
 // Storage keys. Renamed weavle_* -> griddle_* with the 2026-10-02 rebrand;
 // migrateStorageKeys() carries existing players' data forward exactly once.
 const LS_GAME = "griddle_game";
@@ -359,6 +366,7 @@ function renderTabs(): void {
       const direction: SlideDirection = selected > prev ? 'forward' : selected < prev ? 'backward' : 'none';
       renderBoard(direction);
       renderTabs();
+      renderKeyboard();
     };
     t.appendChild(b);
   });
@@ -367,7 +375,9 @@ function renderTabs(): void {
 function renderKeyboard(): void {
   const k = document.getElementById("keyboard");
   if (!k) return;
-  const s = keyState(guesses, answers);
+  // The keyboard reflects the viewed guess, like the board does.
+  const s = keyState(guesses.slice(0, selected + 1), answers);
+  const reviewing = isReviewing();
   k.innerHTML = "";
   KEY_ROWS.forEach((row, rowIndex) => {
     const r = document.createElement("div");
@@ -381,6 +391,7 @@ function renderKeyboard(): void {
       const b = document.createElement("button");
       b.className = "key" + (c === "↵" || c === "⌫" ? " wide" : "") + (s[c.toLowerCase()] ? " " + s[c.toLowerCase()] : "");
       b.textContent = c === "↵" ? "ENTER" : c === "⌫" ? "⌫" : c;
+      b.disabled = reviewing;
       b.onclick = () => press(c);
       r.appendChild(b);
     }
@@ -391,6 +402,8 @@ function renderKeyboard(): void {
     }
     k.appendChild(r);
   });
+  const submitBtn = document.getElementById("submit") as HTMLButtonElement | null;
+  if (submitBtn) submitBtn.disabled = reviewing;
 }
 
 function message(text: string, bad = false): void {
@@ -401,7 +414,7 @@ function message(text: string, bad = false): void {
 }
 
 function press(c: string): void {
-  if (over) return;
+  if (over || isReviewing()) return;
   if (c === "↵") return submit();
   if (c === "⌫") {
     input = input.slice(0, -1);
@@ -666,10 +679,12 @@ function initUI(): void {
           selected--;
           renderBoard('backward');
           renderTabs();
+          renderKeyboard();
         } else if (dx < 0 && selected < guesses.length - 1) {
           selected++;
           renderBoard('forward');
           renderTabs();
+          renderKeyboard();
         }
       }
     }, { passive: true });
