@@ -560,6 +560,19 @@ button:disabled {
 .demo-keyboard.reviewing {
   opacity: 0.4;
 }
+/* Loading spinner (e.g. while the GIF encodes). */
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  vertical-align: -2px;
+  margin-right: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 .demo-words {
   margin: 10px 0 0;
   font-size: .75rem;
@@ -651,7 +664,7 @@ button:disabled {
   }
 }
 </style>
-  <script type="module" crossorigin src="./assets/index-BNTUCUJ1.js"></script>
+  <script type="module" crossorigin src="./assets/index-D_ivNPa0.js"></script>
 </head>
 <body>
 <header>
@@ -662,6 +675,7 @@ button:disabled {
     </div>
   </div>
   <div class="actions">
+    <button id="shareBtn" aria-label="Share results" hidden>📤</button>
     <button id="statsBtn" aria-label="Statistics">📊</button>
     <button id="helpBtn" aria-label="How to play">?</button>
   </div>
