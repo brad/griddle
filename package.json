@@ -1,5 +1,5 @@
 {
-  "name": "weavle",
+  "name": "griddle",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -7,7 +7,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "update-words": "bash scripts/update-words.sh"
+    "update-words": "bash scripts/update-words.sh",
+    "og-image": "vite-node scripts/generate-og-image.ts"
   },
   "devDependencies": {
     "happy-dom": "^20.14.5",

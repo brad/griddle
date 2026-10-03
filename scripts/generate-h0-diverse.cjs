@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Puzzle generator for Weavle - Target diversity in first horizontal word with randomization
+ * Puzzle generator for Griddle - Target diversity in first horizontal word with randomization
  * Keeps searching until target count is reached (no overlap with existing OR new puzzles)
  */
 

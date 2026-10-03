@@ -11,19 +11,19 @@
   <g transform="translate(56, 56)">
     <!-- Row 0 -->
     <rect x="0" y="0" width="72" height="72" rx="14" fill="#3aa35a" stroke="#2e8a4c" stroke-width="4"/>
-    <text x="36" y="48" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="38" text-anchor="middle">W</text>
+    <text x="36" y="48" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="38" text-anchor="middle">G</text>
 
     <rect x="82" y="0" width="72" height="72" rx="14" fill="#3aa35a" stroke="#2e8a4c" stroke-width="4"/>
-    <text x="118" y="48" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="38" text-anchor="middle">E</text>
+    <text x="118" y="48" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="38" text-anchor="middle">R</text>
 
     <rect x="164" y="0" width="72" height="72" rx="14" fill="#3aa35a" stroke="#2e8a4c" stroke-width="4"/>
-    <text x="200" y="48" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="38" text-anchor="middle">A</text>
+    <text x="200" y="48" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="38" text-anchor="middle">I</text>
 
     <rect x="246" y="0" width="72" height="72" rx="14" fill="#3aa35a" stroke="#2e8a4c" stroke-width="4"/>
-    <text x="282" y="48" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="38" text-anchor="middle">V</text>
+    <text x="282" y="48" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="38" text-anchor="middle">L</text>
 
     <rect x="328" y="0" width="72" height="72" rx="14" fill="#3aa35a" stroke="#2e8a4c" stroke-width="4"/>
-    <text x="364" y="48" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="38" text-anchor="middle">E</text>
+    <text x="364" y="48" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="38" text-anchor="middle">L</text>
 
     <!-- Row 1 -->
     <rect x="0" y="82" width="72" height="72" rx="14" fill="#243044" stroke="#52627a" stroke-width="3"/>

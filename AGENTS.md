@@ -1,8 +1,8 @@
-# Weavle Agent Guide
+# Griddle Agent Guide
 
 ## Project Overview
 
-Weavle is a daily word puzzle game where players find six overlapping 5-letter words (3 horizontal, 3 vertical) in a 5x5 waffle grid. Players have 10 guesses to solve all 6 words.
+Griddle is a daily word puzzle game where players find six overlapping 5-letter words (3 horizontal, 3 vertical) in a 5x5 waffle grid. Players have 10 guesses to solve all 6 words.
 
 ## Architecture
 
@@ -176,21 +176,21 @@ puzzles use fair, familiar answer words; guess validation uses the full `WORDS` 
 ## Share Format
 
 ```
-Weavle 123 4/10 ⭐⭐⭐⭐
-🟩🟩🟩🟩🟩
-⬛⭐⬛⭐🟩
-🟩⬛🟩⬛⬛
-⬛⭐⬛⭐⬛
-🟩⬛🟩⬛⬛
+Griddle 123 6/10
+🟩 🟩 🟩 🟩 🟩
+🟩 ⭐ 🟩 ⭐ 🟩
+🟩 🟩 🟩 🟩 🟩
+🟩 ⭐ 🟩 ⭐ 🟩
+🟩 🟩 🟩 🟩 🟩
 ```
 
-- Header: "Weavle {number} {guesses}/10" (+ stars for remaining guesses, max 4)
-- Grid: 5x5 emoji grid showing final state
+- Header: "Griddle {number} {guesses made}/10" (a perfect game is 6/10, the minimum)
+- Grid: 5x5 emoji grid showing final state, squares space-separated
   - 🟩 = green (solved)
   - 🟨 = yellow (hint)
   - ⬛ = gray (wrong)
   - ⬜ = gap (empty)
-  - ⭐ = stars in gap positions (up to 4, for guesses remaining)
+  - ⭐ = stars in gap positions (up to 4, based on guesses remaining: min(4, 10 - guesses))
 
 ## Development
 
