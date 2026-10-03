@@ -4,8 +4,8 @@
 // limit) are played through the actual game code (stateAt / gridLetters from
 // src/game.ts) against a real mini-puzzle (GRILL / ALARM / ELECT across,
 // GRADE / IMAGE / LIMIT down). Every frame renders tiles exactly like the
-// live game does in src/main.ts: green = confirmed letter, yellow = the
-// guessed letter, dark = unknown. Tiles that change between guesses flip
+// live game does in src/cell.ts: green = confirmed letter, yellow = hint
+// letter(s), dark = unknown. Tiles that change between guesses flip
 // over, then the final solved board holds before the loop restarts.
 //
 // Note: most link-preview crawlers (X, Facebook, iMessage) show only the
@@ -45,11 +45,11 @@ const letters = gridLetters(puzzle);
 type TileType = 'green' | 'yellow' | 'dark';
 interface Tile {
   type: TileType;
-  letter: string; // display letter, '' when dark
+  letters: string[]; // green -> [true letter], yellow -> hint letters (1-2), dark -> []
 }
 
-// Tiles exactly as the live game renders them (see src/main.ts):
-// green -> true letter, yellow -> guessed letter, dark -> empty.
+// Tiles exactly as the live game renders them (see src/cell.ts):
+// green -> true letter, yellow -> hint letter(s), dark -> empty.
 function tilesFor(stage: number): (Tile | null)[][] {
   const st = stateAt(stage, guesses, answers);
   const out: (Tile | null)[][] = [];
@@ -60,9 +60,10 @@ function tilesFor(stage: number): (Tile | null)[][] {
         out[r][c] = null;
         continue;
       }
-      if (st.green[r][c]) out[r][c] = { type: 'green', letter: letters[r][c].toUpperCase() };
-      else if (st.yellow[r][c]) out[r][c] = { type: 'yellow', letter: st.yellow[r][c].toUpperCase() };
-      else out[r][c] = { type: 'dark', letter: '' };
+      if (st.green[r][c]) out[r][c] = { type: 'green', letters: [letters[r][c].toUpperCase()] };
+      else if (st.yellow[r][c].length > 0)
+        out[r][c] = { type: 'yellow', letters: st.yellow[r][c].map(h => h.toUpperCase()) };
+      else out[r][c] = { type: 'dark', letters: [] };
     }
   }
   return out;
@@ -106,13 +107,31 @@ function starsSvg(scale: number): string {
   return s;
 }
 
+function tileLetters(tile: Tile): string {
+  const style = styles[tile.type];
+  const font = 'font-family="system-ui, -apple-system, sans-serif" font-weight="800" text-anchor="middle"';
+  if (tile.letters.length === 2) {
+    // Two stacked hints, like the live game's .hint2 cells.
+    return tile.letters
+      .map(
+        (L, i) =>
+          `<text x="${cellSize / 2}" y="${i === 0 ? 32 : 60}" ${font} font-size="22" fill="${style.text}">${L}</text>`
+      )
+      .join('');
+  }
+  if (tile.letters.length === 1) {
+    return `<text x="${cellSize / 2}" y="${cellSize / 2 + 14}" ${font} font-size="40" fill="${style.text}">${tile.letters[0]}</text>`;
+  }
+  return '';
+}
+
 function tileSvg(r: number, c: number, tile: Tile, flipSy?: number): string {
   const x = gridStartX + c * (cellSize + cellGap);
   const y = gridStartY + r * (cellSize + cellGap);
   const style = styles[tile.type];
   const inner = `
         <rect width="${cellSize}" height="${cellSize}" rx="12" fill="${style.bg}" stroke="${style.border}" stroke-width="3"/>
-        ${tile.letter ? `<text x="${cellSize / 2}" y="${cellSize / 2 + 14}" font-family="system-ui, -apple-system, sans-serif" font-size="40" font-weight="800" fill="${style.text}" text-anchor="middle">${tile.letter}</text>` : ''}`;
+        ${tileLetters(tile)}`;
   const flip =
     flipSy === undefined
       ? inner
@@ -147,7 +166,7 @@ function sceneSvg(grid: string, overlay = ''): string {
     <text x="0" y="30" class="title-kicker">DAILY WORD PUZZLE</text>
     <text x="0" y="105" class="title-main">GRIDDLE</text>
 
-    <text x="0" y="175" class="desc">Find 6 interlocking words in a 5×5 grid weave.</text>
+    <text x="0" y="175" class="desc">Untangle six interlocking five-letter words in a 5×5 grid.</text>
     <text x="0" y="210" class="desc">Solve the daily puzzle in 10 guesses or fewer!</text>
 
     <!-- Badges -->
@@ -197,7 +216,7 @@ const FLIP_FRAMES = 6;
 const FLIP_DELAY_MS = 70;
 
 function sameTile(a: Tile, b: Tile): boolean {
-  return a.type === b.type && a.letter === b.letter;
+  return a.type === b.type && a.letters.join() === b.letters.join();
 }
 
 function buildFrames(): Frame[] {
