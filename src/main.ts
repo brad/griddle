@@ -239,6 +239,7 @@ function pickDaily(): void {
   renderTabs();
   renderTyped();
   renderKeyboard();
+  renderShareBtn();
 }
 
 export function renderBoard(direction: SlideDirection = 'none'): void {
@@ -484,6 +485,7 @@ function showResults(): void {
   }
   updateStats(won, guesses.length);
   renderShare();
+  renderShareBtn();
   document.getElementById("results")?.classList.add("show");
   saveGameState();
 }
@@ -507,15 +509,23 @@ function closeShareMenu(): void {
   document.getElementById("shareMenuBtn")?.setAttribute("aria-expanded", "false");
 }
 
+/** The header share button reopens the results dialog; visible only once the game is over. */
+function renderShareBtn(): void {
+  const btn = document.getElementById("shareBtn");
+  if (btn) btn.hidden = !over;
+}
+
 async function shareGifFlow(): Promise<void> {
   const opt = document.getElementById("shareGifOpt") as HTMLButtonElement | null;
-  closeShareMenu();
   if (!opt || opt.disabled) return;
   const original = opt.innerHTML;
   opt.disabled = true;
-  opt.innerHTML = "Making GIF…";
+  opt.innerHTML = `<span class="spinner" aria-hidden="true"></span>Making GIF…`;
+  // Let the spinner paint before the heavy rasterize/encode work begins.
+  await new Promise(r => setTimeout(r, 30));
   try {
     const how = await buildAndShareGif({ puzzleNumber, guesses, answers, puzzle, won });
+    closeShareMenu();
     message(how === "shared" ? "GIF shared!" : "GIF downloaded — text copied.");
   } catch (e) {
     // Dismissing the system share sheet throws AbortError; stay silent then.
@@ -564,6 +574,7 @@ function reset(): void {
   input = "";
   over = false;
   won = false;
+  renderShareBtn();
   const guessCountEl = document.getElementById("guessCount");
   if (guessCountEl) guessCountEl.textContent = "0";
   message("Use the keyboard to enter a guess.");
@@ -620,6 +631,14 @@ function initUI(): void {
     };
     closeResults.onclick = hideResults;
     closeResults.addEventListener("touchstart", hideResults, { passive: false });
+  }
+
+  // Reopen the results/share dialog after it was closed.
+  const shareBtn = document.getElementById("shareBtn");
+  if (shareBtn) {
+    shareBtn.onclick = () => {
+      document.getElementById("results")?.classList.add("show");
+    };
   }
 
   const closeStats = document.getElementById("closeStats");
