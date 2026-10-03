@@ -1,6 +1,7 @@
 import { Puzzle } from "./types";
-import { stateAt, gridLetters } from "./game";
+import { stateAt, gridLetters, keyState } from "./game";
 import { paintCell } from "./cell";
+import { KEY_ROWS } from "./data";
 
 const DEMO_PUZZLE: Puzzle = {
   h: ["snake", "least", "every"],
@@ -8,7 +9,18 @@ const DEMO_PUZZLE: Puzzle = {
 };
 
 const DEMO_ANSWERS = [...DEMO_PUZZLE.h, ...DEMO_PUZZLE.v];
-const DEMO_GUESSES = ["acres", "least"];
+// Each guess demonstrates a rule nuance:
+//  acres: yellow hints, including a two-hint crossing square
+//  least: green squares lock in
+//  creep: double letter — one copy green, one yellow
+//  spool: O is yellow on the keyboard, but its hint square is already green
+const DEMO_GUESSES = ["acres", "least", "creep", "spool"];
+const DEMO_TITLES = [
+  "Yellow hints — one square shows two",
+  "Green squares lock in",
+  "Double letter: one green, one yellow",
+  "O is yellow below, but its square is already green",
+];
 
 let currentDemoIndex = 0;
 let demoSlideTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -18,11 +30,11 @@ let userInteracted = false;
 export type SlideDirection = 'forward' | 'backward' | 'none';
 
 export function renderDemoBoard(index: number, animate: boolean | SlideDirection = 'none'): void {
-  const tab1 = document.getElementById("demoTab1");
-  const tab2 = document.getElementById("demoTab2");
   const timelineLabel = document.getElementById("demoTimelineLabel");
+  const title = document.getElementById("demoTitle");
+  const tabs = document.querySelectorAll<HTMLElement>("#demoTabs .demo-tab");
 
-  if (!tab1 || !tab2 || !timelineLabel) return;
+  if (!timelineLabel) return;
 
   let direction: SlideDirection = 'none';
   if (typeof animate === 'string') {
@@ -66,9 +78,12 @@ export function renderDemoBoard(index: number, animate: boolean | SlideDirection
     }
   };
 
-  tab1.className = "guess-tab demo-tab" + (index === 0 ? " current" : "");
-  tab2.className = "guess-tab demo-tab" + (index === 1 ? " current" : "");
+  tabs.forEach((tab, i) => {
+    tab.classList.toggle("current", i === index);
+  });
+  if (title) title.textContent = DEMO_TITLES[index];
   timelineLabel.textContent = "Showing board after guess " + (index + 1) + ": " + DEMO_GUESSES[index].toUpperCase();
+  renderDemoKeyboard(index);
 
   if (direction === 'none') {
     fillBoard(board1);
@@ -119,16 +134,36 @@ export function renderDemoBoard(index: number, animate: boolean | SlideDirection
   }
 }
 
+// Non-interactive keyboard showing the cumulative key colors up to the
+// selected demo guess — what the real keyboard looks like at that point.
+export function renderDemoKeyboard(index: number): void {
+  const kb = document.getElementById("demoKeyboard");
+  if (!kb) return;
+  const s = keyState(DEMO_GUESSES.slice(0, index + 1), DEMO_ANSWERS);
+  kb.innerHTML = "";
+  KEY_ROWS.forEach((row) => {
+    const r = document.createElement("div");
+    r.className = "key-row";
+    for (const c of row) {
+      if (c === "↵" || c === "⌫") continue;
+      const k = document.createElement("span");
+      k.className = "key demo-key" + (s[c.toLowerCase()] ? " " + s[c.toLowerCase()] : "");
+      k.textContent = c;
+      r.appendChild(k);
+    }
+    kb.appendChild(r);
+  });
+}
+
 export function stopDemoLoop(): void {
   userInteracted = true;
   if (autoLoopTimer) {
     clearTimeout(autoLoopTimer);
     autoLoopTimer = null;
   }
-  const tab1 = document.getElementById("demoTab1");
-  const tab2 = document.getElementById("demoTab2");
-  tab1?.classList.remove("tapped");
-  tab2?.classList.remove("tapped");
+  document.querySelectorAll("#demoTabs .demo-tab").forEach((tab) => {
+    tab.classList.remove("tapped");
+  });
 }
 
 export function resetDemoState(): void {
@@ -147,9 +182,9 @@ export function resetDemoState(): void {
 function runLoopStep(): void {
   if (userInteracted) return;
 
-  // Alternate between guess 1 (index 0) and guess 2 (index 1)
-  const nextIndex = currentDemoIndex === 0 ? 1 : 0;
-  const targetTab = document.getElementById(nextIndex === 1 ? "demoTab2" : "demoTab1");
+  const nextIndex = (currentDemoIndex + 1) % DEMO_GUESSES.length;
+  const tabs = document.querySelectorAll<HTMLElement>("#demoTabs .demo-tab");
+  const targetTab = tabs[nextIndex];
 
   if (targetTab) {
     targetTab.classList.add("tapped");
@@ -180,21 +215,21 @@ export function startDemoLoop(): void {
 }
 
 export function initDemo(): void {
-  const tab1 = document.getElementById("demoTab1");
-  const tab2 = document.getElementById("demoTab2");
-
-  if (tab1) {
-    tab1.onclick = () => {
-      stopDemoLoop();
-      renderDemoBoard(0, true);
-    };
-  }
-
-  if (tab2) {
-    tab2.onclick = () => {
-      stopDemoLoop();
-      renderDemoBoard(1, true);
-    };
+  const container = document.getElementById("demoTabs");
+  if (container) {
+    container.innerHTML = "";
+    DEMO_GUESSES.forEach((g, i) => {
+      const b = document.createElement("button");
+      b.className = "guess-tab demo-tab" + (i === 0 ? " current" : "");
+      b.textContent = String(i + 1);
+      b.title = g.toUpperCase();
+      b.id = `demoTab${i + 1}`;
+      b.onclick = () => {
+        stopDemoLoop();
+        renderDemoBoard(i, true);
+      };
+      container.appendChild(b);
+    });
   }
 
   startDemoLoop();
