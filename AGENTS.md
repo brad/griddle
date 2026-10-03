@@ -12,7 +12,7 @@ Weavle is a daily word puzzle game where players find six overlapping 5-letter w
 - **src/validation.ts** - Puzzle validation (structure, dictionary, no-repeat rule)
 - **src/data.ts** - Constants, word list, keyboard layout
 - **src/puzzles.ts** - Puzzle definitions (separate file for maintainability)
-- **src/words.ts** - Auto-generated word list (3103 common 5-letter words)
+- **src/words.ts** - Auto-generated word lists (MIT, see THIRD-PARTY-NOTICES.md): `WORDS` (12,972 guessable words) and `ANSWERS` (2,315 answer words)
 - **src/types.ts** - TypeScript interfaces
 - **src/index.html** - HTML structure with embedded CSS
 
@@ -43,12 +43,12 @@ Gap positions (always empty): (1,1), (1,3), (3,1), (3,3)
 
 ### Scoring
 
-Each guess is scored against all 6 answer words simultaneously using Wordle rules:
+Each guess is scored against all 6 answer words simultaneously, using standard 5-letter word-game scoring:
 - **Green (🟩)**: Letter correct in that exact position
 - **Yellow (🟨)**: Letter exists in word but different position
 - **Gray (⬛)**: Letter not in word
 
-Duplicate letters follow Wordle rules: each target word's letter can only be matched once.
+Duplicate letters: each target word's letter can only be matched once.
 
 ### Daily Puzzle Selection
 
@@ -59,7 +59,7 @@ Puzzle number = days since epoch (2026-01-01). Cycles through PUZZLES array.
 ### Requirements
 
 1. **Valid Structure**: 3 horizontal + 3 vertical 5-letter words with matching intersections
-2. **Dictionary Words**: All 6 words must exist in `VALID` (src/words.ts)
+2. **Dictionary Words**: All 6 words must exist in `ANSWERS` (the 2,315 curated answer words — the familiarity policy; guesses may use the full `VALID` list)
 3. **Unique Words**: No duplicates within a puzzle
 4. **No Recent Repeats**: Words cannot appear in previous 30 puzzles (180 words)
 
@@ -156,15 +156,19 @@ Append to `src/puzzles.ts`:
 
 ```bash
 npm run update-words
-# Fetches from https://gist.github.com/shmookey/b28e342e1b1756c4700f42f17102c2ff
-# Updates src/words.ts
+# Fetches the allowed-guesses + answers lists from
+# https://github.com/erikolsson/wordle-clone (MIT, see THIRD-PARTY-NOTICES.md)
+# Updates src/words.ts (WORDS = 12,972 guessable words, ANSWERS = 2,315 answer words)
 ```
+
+Puzzle generation (`scripts/generate-h0-diverse.cjs`) draws from `ANSWERS` so new
+puzzles use fair, familiar answer words; guess validation uses the full `WORDS` list.
 
 ## Validation Rules (src/validation.ts)
 
 - Exactly 3 horizontal and 3 vertical words
 - All words exactly 5 letters
-- All words in VALID dictionary
+- All words in ANSWERS dictionary (answer-list policy; enforced by test)
 - No duplicate words within puzzle
 - All 9 grid intersections match
 - No word used in previous 30 puzzles (180-word window)
@@ -216,4 +220,4 @@ GitHub Actions CI (`.github/workflows/ci.yml`):
 - `EPOCH`: 2026-01-01 (day 1)
 - `KEY_ROWS`: Keyboard layout (capitalized, with Enter/Delete symbols)
 - `MAP`: Grid coordinate mappings for 6 words
-- `VALID`: Set of 3103 allowed words
+- `VALID`: Set of 12,972 allowed guess words

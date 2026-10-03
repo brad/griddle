@@ -1,9 +1,20 @@
 import { PUZZLES } from "./puzzles";
-import { WORDS } from "./words";
+import { WORDS, ANSWERS } from "./words";
 
 export { PUZZLES };
 
 export const VALID: Set<string> = new Set(WORDS);
+
+// Answer-list policy: daily puzzle answers must come from the 2,315-word
+// curated answer list (guessable words in VALID may be obscure; answers must be familiar).
+export const VALID_ANSWERS: Set<string> = new Set(ANSWERS);
+
+// Six words removed from the upstream answer list after its acquisition
+// (obscure: agora, pupal, fibre; insensitive: lynch, slave, wench).
+// They remain valid guesses. Keep in sync with scripts/generate-h0-diverse.cjs.
+export const EXCLUDED_ANSWERS: Set<string> = new Set(
+  ["agora", "pupal", "lynch", "fibre", "slave", "wench"]
+);
 
 export const MAP: number[][][] = [
   [[0,0],[0,1],[0,2],[0,3],[0,4]],
