@@ -40,4 +40,11 @@ describe('UI Layout and CSS Constraints', () => {
     expect(htmlContent).toContain('<meta property="og:image:secure_url" content="https://brad.github.io/weavle/og-image.png">');
     expect(htmlContent).toContain('<meta name="twitter:image" content="https://brad.github.io/weavle/og-image.png">');
   });
+  it('index.html defines the star pop animation for finished-game stars', () => {
+    const htmlPath = path.resolve(__dirname, 'index.html');
+    const htmlContent = fs.readFileSync(htmlPath, 'utf8');
+
+    expect(htmlContent).toContain('@keyframes starPop');
+    expect(htmlContent).toContain('.cell.gap.star.pop');
+  });
 });

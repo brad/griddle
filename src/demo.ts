@@ -1,5 +1,6 @@
 import { Puzzle } from "./types";
 import { stateAt, gridLetters } from "./game";
+import { paintCell } from "./cell";
 
 const DEMO_PUZZLE: Puzzle = {
   h: ["snake", "least", "every"],
@@ -7,7 +8,7 @@ const DEMO_PUZZLE: Puzzle = {
 };
 
 const DEMO_ANSWERS = [...DEMO_PUZZLE.h, ...DEMO_PUZZLE.v];
-const DEMO_GUESSES = ["stare", "least"];
+const DEMO_GUESSES = ["acres", "least"];
 
 let currentDemoIndex = 0;
 let demoSlideTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -55,14 +56,11 @@ export function renderDemoBoard(index: number, animate: boolean | SlideDirection
     for (let r = 0; r < 5; r++) {
       for (let c = 0; c < 5; c++) {
         const cell = document.createElement("div");
-        if (!letters[r][c]) {
-          cell.className = "cell gap";
-        } else {
-          const isGreen = state.green[r][c];
-          const hintChar = state.yellow[r][c];
-          cell.className = "cell" + (isGreen ? " revealed" : hintChar ? " hint" : "");
-          cell.textContent = isGreen ? letters[r][c] : (hintChar || "");
-        }
+        paintCell(cell, {
+          green: state.green[r][c],
+          hints: state.yellow[r][c],
+          letter: letters[r][c],
+        });
         targetBoard.appendChild(cell);
       }
     }

@@ -5,7 +5,7 @@ export interface Puzzle {
 
 export interface State {
   green: boolean[][];
-  yellow: string[][];
+  yellow: string[][][];
 }
 
 export interface Summary {
