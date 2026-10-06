@@ -7,8 +7,8 @@
  * same puzzles, assuming same words.ts and puzzles.ts inputs). Without --seed, a
  * seed is drawn from Date.now() and logged, so the run can still be reproduced.
  *
- * Each candidate's theoretical minimum guess count k_min (its par) is computed
- * and logged, but no longer filters: par-relative star scoring keeps every
+ * Each candidate's theoretical minimum guess count k_min (its best) is computed
+ * and logged, but no longer filters: best-relative star scoring keeps every
  * puzzle's stars honest regardless of k_min.
  *
  * Usage: node scripts/generate-h0-diverse.cjs [count] [--seed N]
@@ -154,7 +154,7 @@ for (const [l, c] of Object.entries(h0FirstCounts).sort()) {
 
 // Find ONE puzzle where h[0] starts with target letter
 // batchUsed: words already selected in this batch (to avoid intra-batch overlap)
-// k_min is computed and logged as the puzzle's par, but does not filter.
+// k_min is computed and logged as the puzzle's best score, but does not filter.
 function findPuzzleForH0Letter(targetLetter, batchUsed) {
   // Shuffle word arrays (seeded)
   const shuffledV0 = shuffle(words.filter((w) => w[0] === targetLetter));

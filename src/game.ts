@@ -122,13 +122,13 @@ export function summary(g: string, answers: string[]): Summary {
 }
 
 /**
- * Par for a puzzle: the theoretical minimum guess count (k_min).
+ * Best possible score for a puzzle: the theoretical minimum guess count.
  * Six shared cells sit at different positions in their horizontal vs vertical
  * words and may be completed through either orientation: 2^6 = 64 choices.
  * For each choice, count distinct letters demanded at each guess position;
- * par = min over choices of the max over positions.
+ * best = min over choices of the max over positions.
  */
-export function par(puzzle: Puzzle): number {
+export function best(puzzle: Puzzle): number {
   const words = [...puzzle.h, ...puzzle.v];
   const cells = new Map<string, { pos: number; letter: string }[]>();
   for (let wi = 0; wi < 6; wi++) {
