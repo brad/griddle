@@ -1,7 +1,7 @@
 import { initDemo, startDemoLoop, stopDemoLoop } from './demo';
 import { Puzzle } from './types';
 import { PUZZLES, VALID, KEY_ROWS } from './data';
-import { dayNumber, stateAt, gridLetters, keyState, complete } from './game';
+import { dayNumber, stateAt, gridLetters, keyState, complete, par } from './game';
 import { paintCell } from './cell';
 import { share, starPositions } from './share';
 import { buildAndShareGif } from './gif';
@@ -219,6 +219,8 @@ function pickDaily(): void {
   answers = [...puzzle.h, ...puzzle.v];
   const puzzleNumEl = document.getElementById("puzzleNumber");
   if (puzzleNumEl) puzzleNumEl.textContent = String(puzzleNumber);
+  const parEl = document.getElementById("parValue");
+  if (parEl) parEl.textContent = String(par(puzzle));
 
   const saved = loadGameState();
   if (saved) {
@@ -279,7 +281,7 @@ export function renderBoard(direction: SlideDirection = 'none'): void {
     // Stars are earned for the win: show them only when viewing the final
     // guess, not when flipping back through earlier guesses.
     const starSet = over && selected === guesses.length - 1
-      ? new Set(starPositions(guesses.length).map(([sr, sc]) => sr * 5 + sc))
+      ? new Set(starPositions(guesses.length, par(puzzle)).map(([sr, sc]) => sr * 5 + sc))
       : new Set<number>();
     for (let r = 0; r < 5; r++) {
       for (let c = 0; c < 5; c++) {

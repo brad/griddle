@@ -5,7 +5,7 @@
 
 import { GIFEncoder, quantize, applyPalette } from "gifenc";
 import { Puzzle } from "./types";
-import { stateAt, gridLetters } from "./game";
+import { stateAt, gridLetters, par } from "./game";
 import { share, starPositions } from "./share";
 
 export interface GifInput {
@@ -157,7 +157,7 @@ export function buildGifFrames(o: GifInput): SvgFrame[] {
   const total = o.guesses.length;
   const stages: CellKind[][][] = [];
   for (let i = 0; i < total; i++) stages.push(cellsFor(i, o, letters));
-  const stars = starPositions(total);
+  const stars = starPositions(total, par(o.puzzle));
   const frames: SvgFrame[] = [];
   const still = (stage: number, starScale: number, delayMs: number) =>
     frames.push({ svg: compose(o, letters, stages, stage, null, starScale, stars), delayMs });

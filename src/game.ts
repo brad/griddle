@@ -120,3 +120,42 @@ export function summary(g: string, answers: string[]): Summary {
   );
   return { green, yellow };
 }
+
+/**
+ * Par for a puzzle: the theoretical minimum guess count (k_min).
+ * Six shared cells sit at different positions in their horizontal vs vertical
+ * words and may be completed through either orientation: 2^6 = 64 choices.
+ * For each choice, count distinct letters demanded at each guess position;
+ * par = min over choices of the max over positions.
+ */
+export function par(puzzle: Puzzle): number {
+  const words = [...puzzle.h, ...puzzle.v];
+  const cells = new Map<string, { pos: number; letter: string }[]>();
+  for (let wi = 0; wi < 6; wi++) {
+    for (let i = 0; i < 5; i++) {
+      const [r, c] = MAP[wi][i];
+      const key = r + "," + c;
+      if (!cells.has(key)) cells.set(key, []);
+      cells.get(key)!.push({ pos: i, letter: words[wi][i] });
+    }
+  }
+  const flex: { pos: number; letter: string }[][] = [];
+  const fixed: { pos: number; letter: string }[] = [];
+  for (const arr of cells.values()) {
+    if (new Set(arr.map((x) => x.pos)).size > 1) flex.push(arr);
+    else fixed.push(arr[0]);
+  }
+  let best = Infinity;
+  for (let mask = 0; mask < 1 << flex.length; mask++) {
+    const perPos = [new Set<string>(), new Set<string>(), new Set<string>(), new Set<string>(), new Set<string>()];
+    for (const { pos, letter } of fixed) perPos[pos].add(letter);
+    for (let k = 0; k < flex.length; k++) {
+      const { pos, letter } = flex[k][(mask >> k) & 1];
+      perPos[pos].add(letter);
+    }
+    let m = 0;
+    for (const s of perPos) m = Math.max(m, s.size);
+    if (m < best) best = m;
+  }
+  return best;
+}

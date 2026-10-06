@@ -176,7 +176,7 @@ puzzles use fair, familiar answer words; guess validation uses the full `WORDS` 
 ## Share Format
 
 ```
-Griddle 123 6/10
+Griddle 123 6/10 · par 6
 🟩 🟩 🟩 🟩 🟩
 🟩 ⭐ 🟩 ⭐ 🟩
 🟩 🟩 🟩 🟩 🟩
@@ -184,13 +184,15 @@ Griddle 123 6/10
 🟩 🟩 🟩 🟩 🟩
 ```
 
-- Header: "Griddle {number} {guesses made}/10" (a perfect game is 6/10, the minimum)
+- Header: "Griddle {number} {guesses made}/10 · par {par}" (par is the puzzle's
+  theoretical minimum guess count; a perfect game matches par)
 - Grid: 5x5 emoji grid showing final state, squares space-separated
   - 🟩 = green (solved)
   - 🟨 = yellow (hint)
   - ⬛ = gray (wrong)
   - ⬜ = gap (empty)
-  - ⭐ = stars in gap positions (up to 4, based on guesses remaining: min(4, 10 - guesses))
+  - ⭐ = stars in gap positions (up to 4, par-relative: 4 at par or better,
+    one fewer per guess over par, floored at 0)
 
 ## Development
 
