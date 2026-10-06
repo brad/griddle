@@ -26,6 +26,18 @@ interface GameState {
 
 export type SlideDirection = 'forward' | 'backward' | 'none';
 
+// Umami analytics global (loaded via defer script in index.html; may be
+// absent when blocked or still loading).
+declare const umami:
+  | { track: (event: string, data?: Record<string, string>) => void }
+  | undefined;
+
+function trackGameEnd(event: "game-completed" | "game-busted"): void {
+  if (typeof umami !== "undefined") {
+    umami.track(event, { guesses: String(guesses.length) });
+  }
+}
+
 let puzzleNumber: number;
 let puzzle: Puzzle;
 let answers: string[];
@@ -451,6 +463,7 @@ function submit(): void {
     won = true;
     animateStars = true;
     message("Solved in " + guesses.length + " guesses.");
+    trackGameEnd("game-completed");
     setTimeout(() => showResults(), 250);
     saveGameState();
     return;
@@ -459,6 +472,7 @@ function submit(): void {
     over = true;
     won = false;
     message("Bust. The words were " + answers.join(", ").toUpperCase() + ".", true);
+    trackGameEnd("game-busted");
     setTimeout(() => showResults(), 250);
     saveGameState();
     return;
