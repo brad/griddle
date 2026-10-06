@@ -1,7 +1,7 @@
 // Experimental animated-GIF share: replays the game as a swipe-through of
 // each guess stage, with no letters ever drawn (colors only, like the emoji
-// share text). The header mimics the share text, except the n/10 counter
-// ticks down live as the guesses advance.
+// share text). The header mimics the share text, except the n/12 counter
+// ticks up live as the guesses advance.
 
 import { GIFEncoder, quantize, applyPalette } from "gifenc";
 import { Puzzle } from "./types";

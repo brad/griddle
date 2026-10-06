@@ -19,7 +19,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import sharp from 'sharp';
 import { GIFEncoder, quantize, applyPalette } from 'gifenc';
-import { stateAt, gridLetters, validatePuzzle } from '../src/game';
+import { stateAt, gridLetters, validatePuzzle, best } from '../src/game';
 import { WORDS } from '../src/words';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -80,9 +80,9 @@ const cellGap = 12;
 const gridStartX = 690;
 const gridStartY = 101;
 
-// Stars earned for finishing with guesses to spare, exactly like share.ts:
-// one star per remaining guess (10 - guessCount), up to the 4 gaps.
-const starCount = Math.min(4, Math.max(0, 10 - guesses.length));
+// Stars earned, exactly like share.ts: best-relative, 4 at best or better,
+// one fewer per guess over best, floored at 0.
+const starCount = Math.min(4, Math.max(0, 4 - (guesses.length - best(puzzle))));
 const starPositions: [number, number][] = [[1, 1], [1, 3], [3, 1], [3, 3]].slice(0, starCount);
 
 function starPoints(r: number): string {
