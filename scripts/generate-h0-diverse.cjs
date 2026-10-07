@@ -249,7 +249,7 @@ if (consecutiveMisses >= maxConsecutiveMisses) {
 console.log(`\nFound ${newPuzzles.length} new diverse puzzles:`);
 for (let i = 0; i < newPuzzles.length; i++) {
   const p = newPuzzles[i];
-  console.log(`  ${i + 1}: h=[${p.h.join(', ')}] v=[${p.v.join(', ')}] (k_min=${p.kMin})`);
+  console.log(`  { h: [${p.h.map((w) => `"${w}"`).join(', ')}], v: [${p.v.map((w) => `"${w}"`).join(', ')}], best: ${p.kMin} },`);
 }
 
 const allPuzzles = [...existingPuzzles, ...newPuzzles.map(({ kMin, ...rest }) => rest)];

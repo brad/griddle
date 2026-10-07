@@ -131,10 +131,14 @@ This script:
 # 1. Generate new diverse puzzles (e.g., 10)
 node scripts/generate-h0-diverse.cjs 10
 
-# 2. Copy the output puzzles (from "Found X new diverse puzzles:" section)
+# 2. Copy the output puzzles (from "Found X new diverse puzzles:" section,
+#    now emitted as { h: [...], v: [...], best: N } lines ready to paste)
 #    and append them to src/puzzles.ts array (no blank lines, no comments)
 
-# 3. Run validation to ensure no word overlap and all constraints pass
+# 3. Verify the best values with the exact real-word set-cover solver
+node scripts/compute-best.cjs --all
+
+# 4. Run validation to ensure no word overlap and all constraints pass
 npm run test
 ```
 
