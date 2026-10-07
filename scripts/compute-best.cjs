@@ -15,16 +15,52 @@
  *   --all      : compute for all puzzles, emit JSON {index: best}
  */
 
-const fs = require('fs');
+const fs = require("fs");
 
 // ---------- Load data ----------
 const CELL_MAP = [
-  [[0,0],[0,1],[0,2],[0,3],[0,4]],
-  [[2,0],[2,1],[2,2],[2,3],[2,4]],
-  [[4,0],[4,1],[4,2],[4,3],[4,4]],
-  [[0,0],[1,0],[2,0],[3,0],[4,0]],
-  [[0,2],[1,2],[2,2],[3,2],[4,2]],
-  [[0,4],[1,4],[2,4],[3,4],[4,4]]
+  [
+    [0, 0],
+    [0, 1],
+    [0, 2],
+    [0, 3],
+    [0, 4],
+  ],
+  [
+    [2, 0],
+    [2, 1],
+    [2, 2],
+    [2, 3],
+    [2, 4],
+  ],
+  [
+    [4, 0],
+    [4, 1],
+    [4, 2],
+    [4, 3],
+    [4, 4],
+  ],
+  [
+    [0, 0],
+    [1, 0],
+    [2, 0],
+    [3, 0],
+    [4, 0],
+  ],
+  [
+    [0, 2],
+    [1, 2],
+    [2, 2],
+    [3, 2],
+    [4, 2],
+  ],
+  [
+    [0, 4],
+    [1, 4],
+    [2, 4],
+    [3, 4],
+    [4, 4],
+  ],
 ];
 
 // cell key -> bit index (21 letter cells)
@@ -33,23 +69,28 @@ let bitIdx = 0;
 for (let wi = 0; wi < 6; wi++) {
   for (let i = 0; i < 5; i++) {
     const [r, c] = CELL_MAP[wi][i];
-    const key = r + ',' + c;
+    const key = r + "," + c;
     if (!cellBit.has(key)) cellBit.set(key, bitIdx++);
   }
 }
 const NCELLS = bitIdx; // 21
 const FULL = (1 << NCELLS) - 1;
 
-const wordsContent = fs.readFileSync('src/words.ts', 'utf8');
-const wordsMatch = wordsContent.match(/export const WORDS: string\[\] = \[([\s\S]*?)\];/);
-if (!wordsMatch) throw new Error('Could not parse WORDS from src/words.ts');
+const wordsContent = fs.readFileSync("src/words.ts", "utf8");
+const wordsMatch = wordsContent.match(
+  /export const WORDS: string\[\] = \[([\s\S]*?)\];/,
+);
+if (!wordsMatch) throw new Error("Could not parse WORDS from src/words.ts");
 const WORDS = wordsMatch[1].match(/'([a-z]{5})'/g).map((w) => w.slice(1, -1));
 console.log(`Loaded ${WORDS.length} guess words`);
 
-const puzzlesContent = fs.readFileSync('src/puzzles.ts', 'utf8');
-const puzzlesMatch = puzzlesContent.match(/export const PUZZLES: [A-Za-z]+\[\] = (\[[\s\S]*?\]);/);
-if (!puzzlesMatch) throw new Error('Could not parse PUZZLES from src/puzzles.ts');
-const PUZZLES = eval('(' + puzzlesMatch[1] + ')');
+const puzzlesContent = fs.readFileSync("src/puzzles.ts", "utf8");
+const puzzlesMatch = puzzlesContent.match(
+  /export const PUZZLES: [A-Za-z]+\[\] = (\[[\s\S]*?\]);/,
+);
+if (!puzzlesMatch)
+  throw new Error("Could not parse PUZZLES from src/puzzles.ts");
+const PUZZLES = eval("(" + puzzlesMatch[1] + ")");
 console.log(`Loaded ${PUZZLES.length} puzzles`);
 
 // ---------- Arbitrary-string k_min (lower bound) ----------
@@ -59,7 +100,7 @@ function arbitraryKMin(puzzle) {
   for (let wi = 0; wi < 6; wi++) {
     for (let i = 0; i < 5; i++) {
       const [r, c] = CELL_MAP[wi][i];
-      const key = r + ',' + c;
+      const key = r + "," + c;
       if (!cells.has(key)) cells.set(key, []);
       cells.get(key).push({ pos: i, letter: words[wi][i] });
     }
@@ -92,7 +133,7 @@ function coverageMask(guess, answers) {
     for (let i = 0; i < 5; i++) {
       if (guess[i] === answers[wi][i]) {
         const [r, c] = CELL_MAP[wi][i];
-        mask |= 1 << cellBit.get(r + ',' + c);
+        mask |= 1 << cellBit.get(r + "," + c);
       }
     }
   }
@@ -101,7 +142,10 @@ function coverageMask(guess, answers) {
 
 function popcount(n) {
   let c = 0;
-  while (n) { c += n & 1; n >>>= 1; }
+  while (n) {
+    c += n & 1;
+    n >>>= 1;
+  }
   return c;
 }
 
@@ -172,8 +216,8 @@ const argv = process.argv.slice(2);
 let onlyIdx = -1;
 let all = false;
 for (const a of argv) {
-  if (a === '--all') all = true;
-  else if (a === '--puzzle' && argv[argv.indexOf(a) + 1]) {
+  if (a === "--all") all = true;
+  else if (a === "--puzzle" && argv[argv.indexOf(a) + 1]) {
     onlyIdx = parseInt(argv[argv.indexOf(a) + 1], 10);
   }
 }
@@ -193,5 +237,5 @@ if (onlyIdx >= 0) {
   console.log(JSON.stringify(out));
   console.log(`Total: ${Date.now() - t0}ms`);
 } else {
-  console.log('Usage: node scripts/compute-best.cjs [--puzzle N | --all]');
+  console.log("Usage: node scripts/compute-best.cjs [--puzzle N | --all]");
 }

@@ -13,7 +13,7 @@
  * Usage: node scripts/generate-h0-diverse.cjs [count] [--seed N]
  */
 
-const fs = require('fs');
+const fs = require("fs");
 
 // ---------- CLI args ----------
 const argv = process.argv.slice(2);
@@ -21,13 +21,16 @@ let targetCount = 20;
 let seed = null;
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i];
-  if (a === '--seed' && i + 1 < argv.length) seed = parseInt(argv[++i], 10);
-  else if (!a.startsWith('--') && /^\d+$/.test(a)) targetCount = parseInt(a, 10);
+  if (a === "--seed" && i + 1 < argv.length) seed = parseInt(argv[++i], 10);
+  else if (!a.startsWith("--") && /^\d+$/.test(a))
+    targetCount = parseInt(a, 10);
   else throw new Error(`Unknown argument: ${a}`);
 }
 if (seed === null || Number.isNaN(seed)) {
   seed = (Date.now() % 4294967296) >>> 0;
-  console.log(`No --seed given; using seed=${seed} (pass --seed ${seed} to reproduce this run)`);
+  console.log(
+    `No --seed given; using seed=${seed} (pass --seed ${seed} to reproduce this run)`,
+  );
 } else {
   console.log(`Using seed=${seed}`);
 }
@@ -40,7 +43,7 @@ function mulberry32(seed) {
   let a = seed >>> 0;
   return function () {
     a |= 0;
-    a = (a + 0x6D2B79F5) | 0;
+    a = (a + 0x6d2b79f5) | 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -58,12 +61,48 @@ function shuffle(arr) {
 // ---------- Minimum-guess computation ----------
 // Cell map: 6 words (h0,h1,h2,v0,v1,v2) x 5 letter positions -> [row, col]
 const CELL_MAP = [
-  [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4]], // h0
-  [[2, 0], [2, 1], [2, 2], [2, 3], [2, 4]], // h1
-  [[4, 0], [4, 1], [4, 2], [4, 3], [4, 4]], // h2
-  [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]], // v0
-  [[0, 2], [1, 2], [2, 2], [3, 2], [4, 2]], // v1
-  [[0, 4], [1, 4], [2, 4], [3, 4], [4, 4]], // v2
+  [
+    [0, 0],
+    [0, 1],
+    [0, 2],
+    [0, 3],
+    [0, 4],
+  ], // h0
+  [
+    [2, 0],
+    [2, 1],
+    [2, 2],
+    [2, 3],
+    [2, 4],
+  ], // h1
+  [
+    [4, 0],
+    [4, 1],
+    [4, 2],
+    [4, 3],
+    [4, 4],
+  ], // h2
+  [
+    [0, 0],
+    [1, 0],
+    [2, 0],
+    [3, 0],
+    [4, 0],
+  ], // v0
+  [
+    [0, 2],
+    [1, 2],
+    [2, 2],
+    [3, 2],
+    [4, 2],
+  ], // v1
+  [
+    [0, 4],
+    [1, 4],
+    [2, 4],
+    [3, 4],
+    [4, 4],
+  ], // v2
 ];
 
 /**
@@ -81,7 +120,7 @@ function computeBest(puzzle) {
   for (let wi = 0; wi < 6; wi++) {
     for (let i = 0; i < 5; i++) {
       const [r, c] = CELL_MAP[wi][i];
-      const key = r + ',' + c;
+      const key = r + "," + c;
       if (!cells.has(key)) cells.set(key, []);
       cells.get(key).push({ pos: i, letter: words[wi][i] });
     }
@@ -108,20 +147,32 @@ function computeBest(puzzle) {
 }
 
 // ---------- Word pool ----------
-const wordsContent = fs.readFileSync('src/words.ts', 'utf8');
+const wordsContent = fs.readFileSync("src/words.ts", "utf8");
 // Build puzzles from the ANSWERS pool (curated answer words) so generated
 // puzzles use fair, familiar words; the full WORDS list is for guess validation.
-const answersMatch = wordsContent.match(/export const ANSWERS: string\[\] = \[([\s\S]*?)\];/);
-if (!answersMatch) throw new Error('Could not parse ANSWERS from src/words.ts');
+const answersMatch = wordsContent.match(
+  /export const ANSWERS: string\[\] = \[([\s\S]*?)\];/,
+);
+if (!answersMatch) throw new Error("Could not parse ANSWERS from src/words.ts");
 // Six words removed from the upstream answer list after its acquisition
 // (obscure: agora, pupal, fibre; insensitive: lynch, slave, wench).
 // They remain valid guesses.
-const EXCLUDED = new Set(['agora', 'pupal', 'lynch', 'fibre', 'slave', 'wench']);
-const words = answersMatch[1].match(/'([a-z]{5})'/g).map((w) => w.slice(1, -1)).filter((w) => !EXCLUDED.has(w));
+const EXCLUDED = new Set([
+  "agora",
+  "pupal",
+  "lynch",
+  "fibre",
+  "slave",
+  "wench",
+]);
+const words = answersMatch[1]
+  .match(/'([a-z]{5})'/g)
+  .map((w) => w.slice(1, -1))
+  .filter((w) => !EXCLUDED.has(w));
 
 const byPattern = new Map();
 for (const w of words) {
-  const key = w[0] + ',' + w[2] + ',' + w[4];
+  const key = w[0] + "," + w[2] + "," + w[4];
   if (!byPattern.has(key)) byPattern.set(key, []);
   byPattern.get(key).push(w);
 }
@@ -129,11 +180,13 @@ for (const w of words) {
 // Load existing puzzles
 let existingPuzzles = [];
 try {
-  const dataContent = fs.readFileSync('src/puzzles.ts', 'utf8');
-  const match = dataContent.match(/export const PUZZLES: Puzzle\[\] = (\[[\s\S]*?\]);/);
-  if (match) existingPuzzles = eval('(' + match[1] + ')');
+  const dataContent = fs.readFileSync("src/puzzles.ts", "utf8");
+  const match = dataContent.match(
+    /export const PUZZLES: Puzzle\[\] = (\[[\s\S]*?\]);/,
+  );
+  if (match) existingPuzzles = eval("(" + match[1] + ")");
 } catch (e) {
-  console.log('Could not load existing:', e.message);
+  console.log("Could not load existing:", e.message);
 }
 
 const used = new Set();
@@ -141,14 +194,16 @@ for (const p of existingPuzzles) {
   [...p.h, ...p.v].forEach((w) => used.add(w));
 }
 
-console.log(`Existing: ${existingPuzzles.length} puzzles, ${used.size} words used`);
+console.log(
+  `Existing: ${existingPuzzles.length} puzzles, ${used.size} words used`,
+);
 
 // Track first letter of h[0] (first horizontal word)
 const h0FirstCounts = {};
 for (const p of existingPuzzles) {
   h0FirstCounts[p.h[0][0]] = (h0FirstCounts[p.h[0][0]] || 0) + 1;
 }
-console.log('\nCurrent h[0] first letter distribution:');
+console.log("\nCurrent h[0] first letter distribution:");
 for (const [l, c] of Object.entries(h0FirstCounts).sort()) {
   console.log(`  ${l}: ${c}`);
 }
@@ -165,9 +220,9 @@ function findPuzzleForH0Letter(targetLetter, batchUsed) {
   for (const v0 of shuffledV0) {
     for (const v1 of shuffledV1) {
       for (const v2 of shuffledV2) {
-        const h0Key = v0[0] + ',' + v1[0] + ',' + v2[0];
-        const h1Key = v0[2] + ',' + v1[2] + ',' + v2[2];
-        const h2Key = v0[4] + ',' + v1[4] + ',' + v2[4];
+        const h0Key = v0[0] + "," + v1[0] + "," + v2[0];
+        const h1Key = v0[2] + "," + v1[2] + "," + v2[2];
+        const h2Key = v0[4] + "," + v1[4] + "," + v2[4];
 
         const h0s = byPattern.get(h0Key) || [];
         const h1s = byPattern.get(h1Key) || [];
@@ -189,7 +244,8 @@ function findPuzzleForH0Letter(targetLetter, batchUsed) {
               const unique = new Set(allWords);
               if (unique.size !== 6) continue;
               // Check against both existing used words AND batch-used words
-              if (allWords.some((w) => used.has(w) || batchUsed.has(w))) continue;
+              if (allWords.some((w) => used.has(w) || batchUsed.has(w)))
+                continue;
 
               const puzzle = { h: [h0, h1, h2], v: [v0, v1, v2] };
               puzzle.best = computeBest(puzzle);
@@ -207,7 +263,7 @@ function findPuzzleForH0Letter(targetLetter, batchUsed) {
 const newPuzzles = [];
 
 // All letters, shuffled (seeded)
-let letters = shuffle('abcdefghijklmnopqrstuvwxyz'.split(''));
+let letters = shuffle("abcdefghijklmnopqrstuvwxyz".split(""));
 let letterIndex = 0;
 
 // Track words used within this batch to avoid intra-batch overlap
@@ -217,19 +273,24 @@ const batchUsed = new Set();
 let consecutiveMisses = 0;
 const maxConsecutiveMisses = 130; // 5 full alphabet cycles
 
-while (newPuzzles.length < targetCount && consecutiveMisses < maxConsecutiveMisses) {
+while (
+  newPuzzles.length < targetCount &&
+  consecutiveMisses < maxConsecutiveMisses
+) {
   const letter = letters[letterIndex];
   letterIndex++;
 
   // Reshuffle letters if we've exhausted all 26
   if (letterIndex >= letters.length) {
-    letters = shuffle('abcdefghijklmnopqrstuvwxyz'.split(''));
+    letters = shuffle("abcdefghijklmnopqrstuvwxyz".split(""));
     letterIndex = 0;
   }
 
   const p = findPuzzleForH0Letter(letter, batchUsed);
   if (!p) {
-    console.log(`  No puzzles found for h[0]='${letter}', trying next letter...`);
+    console.log(
+      `  No puzzles found for h[0]='${letter}', trying next letter...`,
+    );
     consecutiveMisses++;
     continue;
   }
@@ -240,20 +301,29 @@ while (newPuzzles.length < targetCount && consecutiveMisses < maxConsecutiveMiss
     used.add(w);
     batchUsed.add(w);
   });
-  console.log(`Added for h[0]='${letter}' (best=${p.best}): h=[${p.h.join(', ')}] v=[${p.v.join(', ')}]`);
+  console.log(
+    `Added for h[0]='${letter}' (best=${p.best}): h=[${p.h.join(", ")}] v=[${p.v.join(", ")}]`,
+  );
 }
 
 if (consecutiveMisses >= maxConsecutiveMisses) {
-  console.log(`\nStopped early: ${maxConsecutiveMisses} consecutive letters yielded no puzzle.`);
+  console.log(
+    `\nStopped early: ${maxConsecutiveMisses} consecutive letters yielded no puzzle.`,
+  );
 }
 
 console.log(`\nFound ${newPuzzles.length} new diverse puzzles:`);
 for (let i = 0; i < newPuzzles.length; i++) {
   const p = newPuzzles[i];
-  console.log(`  { h: [${p.h.map((w) => `"${w}"`).join(', ')}], v: [${p.v.map((w) => `"${w}"`).join(', ')}], best: ${p.best} },`);
+  console.log(
+    `  { h: [${p.h.map((w) => `"${w}"`).join(", ")}], v: [${p.v.map((w) => `"${w}"`).join(", ")}], best: ${p.best} },`,
+  );
 }
 
-const allPuzzles = [...existingPuzzles, ...newPuzzles.map(({ best, ...rest }) => rest)];
+const allPuzzles = [
+  ...existingPuzzles,
+  ...newPuzzles.map(({ best, ...rest }) => rest),
+];
 const allWords = new Set(allPuzzles.flatMap((p) => [...p.h, ...p.v]));
 
 const finalH0Dist = {};
@@ -261,8 +331,10 @@ for (const p of allPuzzles) {
   finalH0Dist[p.h[0][0]] = (finalH0Dist[p.h[0][0]] || 0) + 1;
 }
 
-console.log(`\nTotal: ${allPuzzles.length} puzzles, ${allWords.size} unique words`);
-console.log('\nFinal h[0] first letter distribution:');
-for (const l of 'abcdefghijklmnopqrstuvwxyz'.split('')) {
+console.log(
+  `\nTotal: ${allPuzzles.length} puzzles, ${allWords.size} unique words`,
+);
+console.log("\nFinal h[0] first letter distribution:");
+for (const l of "abcdefghijklmnopqrstuvwxyz".split("")) {
   if (finalH0Dist[l]) console.log(`  ${l}: ${finalH0Dist[l]}`);
 }

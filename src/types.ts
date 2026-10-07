@@ -15,4 +15,4 @@ export interface Summary {
   yellow: number;
 }
 
-export type ShareStyle = 'waffle';
+export type ShareStyle = "waffle";
