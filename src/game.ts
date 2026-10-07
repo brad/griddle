@@ -122,49 +122,11 @@ export function summary(g: string, answers: string[]): Summary {
 }
 
 /**
- * Best possible score for a puzzle: the theoretical minimum guess count.
- * Uses the stored verified value when present (see scripts/compute-best.cjs);
- * otherwise falls back to the 64-orientation computation below, which is
- * proven equivalent to the exact real-word minimum on all rotation puzzles.
- *
- * Six shared cells sit at different positions in their horizontal vs vertical
- * words and may be completed through either orientation: 2^6 = 64 choices.
- * For each choice, count distinct letters demanded at each guess position;
- * best = min over choices of the max over positions.
+ * Best possible score for a puzzle: the theoretical minimum guess count,
+ * verified by exact real-word set cover (see scripts/compute-best.cjs).
+ * Stored on every puzzle; the 64-orientation computation lives in
+ * scripts/generate-h0-diverse.cjs and scripts/compute-best.cjs.
  */
 export function best(puzzle: Puzzle): number {
-  if (puzzle.best !== undefined) return puzzle.best;
-  return computeBest(puzzle);
-}
-
-function computeBest(puzzle: Puzzle): number {
-  const words = [...puzzle.h, ...puzzle.v];
-  const cells = new Map<string, { pos: number; letter: string }[]>();
-  for (let wi = 0; wi < 6; wi++) {
-    for (let i = 0; i < 5; i++) {
-      const [r, c] = MAP[wi][i];
-      const key = r + "," + c;
-      if (!cells.has(key)) cells.set(key, []);
-      cells.get(key)!.push({ pos: i, letter: words[wi][i] });
-    }
-  }
-  const flex: { pos: number; letter: string }[][] = [];
-  const fixed: { pos: number; letter: string }[] = [];
-  for (const arr of cells.values()) {
-    if (new Set(arr.map((x) => x.pos)).size > 1) flex.push(arr);
-    else fixed.push(arr[0]);
-  }
-  let best = Infinity;
-  for (let mask = 0; mask < 1 << flex.length; mask++) {
-    const perPos = [new Set<string>(), new Set<string>(), new Set<string>(), new Set<string>(), new Set<string>()];
-    for (const { pos, letter } of fixed) perPos[pos].add(letter);
-    for (let k = 0; k < flex.length; k++) {
-      const { pos, letter } = flex[k][(mask >> k) & 1];
-      perPos[pos].add(letter);
-    }
-    let m = 0;
-    for (const s of perPos) m = Math.max(m, s.size);
-    if (m < best) best = m;
-  }
-  return best;
+  return puzzle.best;
 }

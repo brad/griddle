@@ -34,6 +34,7 @@ describe("puzzle validation", () => {
     const invalidPuzzle: Puzzle = {
       h: ["share", "audio", "steel"],
       v: ["stars", "adult", "ember"],
+      best: 6,
     };
     const errors = validatePuzzle(invalidPuzzle, VALID);
     expect(errors.length).toBeGreaterThan(0);
@@ -44,6 +45,7 @@ describe("puzzle validation", () => {
     const invalidPuzzle: Puzzle = {
       h: ["snake", "least", "every"],
       v: ["solve", "awar", "entry"],
+      best: 6,
     };
     const errors = validatePuzzle(invalidPuzzle, VALID);
     expect(errors.some(e => e.includes("must be exactly 5 letters long"))).toBe(true);
@@ -53,6 +55,7 @@ describe("puzzle validation", () => {
     const invalidPuzzle: Puzzle = {
       h: ["snake", "least", "every"],
       v: ["solve", "zzzzz", "entry"],
+      best: 6,
     };
     const errors = validatePuzzle(invalidPuzzle, VALID);
     expect(errors.some(e => e.includes("is not in the valid dictionary"))).toBe(true);
@@ -62,6 +65,7 @@ describe("puzzle validation", () => {
     const invalidPuzzle: Puzzle = {
       h: ["snake", "least", "every"],
       v: ["snake", "aware", "entry"],
+      best: 6,
     };
     const errors = validatePuzzle(invalidPuzzle, VALID);
     expect(errors).toContain("Puzzle contains duplicate words.");
@@ -82,6 +86,7 @@ describe("puzzle validation", () => {
       {
         h: ["share", "audio", "steel"],
         v: ["stars", "adult", "ember"],
+        best: 6,
       },
     ];
     expect(() => validateAllPuzzles(invalidPuzzles, VALID)).toThrow(/Puzzle 2 validation failed/);

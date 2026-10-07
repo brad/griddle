@@ -5,7 +5,8 @@ import { KEY_ROWS } from "./data";
 
 const DEMO_PUZZLE: Puzzle = {
   h: ["snake", "least", "every"],
-  v: ["solve", "aware", "entry"]
+  v: ["solve", "aware", "entry"],
+  best: 6
 };
 
 const DEMO_ANSWERS = [...DEMO_PUZZLE.h, ...DEMO_PUZZLE.v];
