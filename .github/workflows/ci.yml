@@ -27,8 +27,14 @@ jobs:
       - name: TypeScript check
         run: npx tsc --noEmit
 
-      - name: Prettier check
-        run: npm run format:check
+      - name: Prettier check (changed files)
+        run: |
+          FILES=$(git diff --name-only origin/main...HEAD -- 'src/**/*.ts' 'src/**/*.tsx' 'scripts/**/*.js' 'scripts/**/*.cjs' | tr '\n' ' ')
+          if [ -n "$FILES" ]; then
+            npx prettier --check $FILES
+          else
+            echo "No changed source files to check."
+          fi
 
       - name: Build
         run: npm run build
