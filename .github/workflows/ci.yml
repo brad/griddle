@@ -24,5 +24,11 @@ jobs:
       - name: Run unit tests
         run: npm run test
 
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Prettier check
+        run: npm run format:check
+
       - name: Build
         run: npm run build
