@@ -35,20 +35,20 @@ describe("gif share", () => {
     expect(frames[0].svg).toContain("Griddle 1");
   });
 
-  it("ticks the n/10 counter up through the stages", () => {
+  it("ticks the n/12 counter up through the stages", () => {
     const guesses = ["crane", "slate"];
     const frames = buildGifFrames({ puzzleNumber: 3, guesses, answers, puzzle, won: true });
     expect(frames[0].svg).toContain("Griddle 3");
-    expect(frames[0].svg).toContain("1/10");
+    expect(frames[0].svg).toContain("1/12");
     // stage 2 hold starts after 5 hold + 5 swipe frames
-    expect(frames[10].svg).toContain("2/10");
+    expect(frames[10].svg).toContain("2/12");
   });
 
-  it("shows X/10 with no stars on a bust", () => {
+  it("shows X/12 with no stars on a bust", () => {
     const guesses = ["aaaaa", "bbbbb", "ccccc", "ddddd", "eeeee", "fffff", "ggggg", "hhhhh", "iiiii", "jjjjj"];
     const frames = buildGifFrames({ puzzleNumber: 2, guesses, answers, puzzle, won: false });
     const last = frames[frames.length - 1].svg;
-    expect(last).toContain("X/10");
+    expect(last).toContain("X/12");
     expect(last.includes("<polygon")).toBe(false);
   });
 

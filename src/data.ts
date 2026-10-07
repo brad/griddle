@@ -33,3 +33,7 @@ export const KEY_ROWS: string[][] = [
 
 export const EPOCH: Date = new Date(2026, 8, 17);
 
+// Maximum guesses per game. Independent of star scoring (which is
+// par-relative): raising this only makes busts less likely.
+export const MAX_GUESSES = 12;
+

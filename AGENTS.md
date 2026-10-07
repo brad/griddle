@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Griddle is a daily word puzzle game where players find six overlapping 5-letter words (3 horizontal, 3 vertical) in a 5x5 waffle grid. Players have 10 guesses to solve all 6 words.
+Griddle is a daily word puzzle game where players find six overlapping 5-letter words (3 horizontal, 3 vertical) in a 5x5 waffle grid. Players have 12 guesses (MAX_GUESSES in src/data.ts) to solve all 6 words.
 
 ## Architecture
 
@@ -176,7 +176,7 @@ puzzles use fair, familiar answer words; guess validation uses the full `WORDS` 
 ## Share Format
 
 ```
-Griddle 123 6/10
+Griddle 123 6/12 · best 6
 🟩 🟩 🟩 🟩 🟩
 🟩 ⭐ 🟩 ⭐ 🟩
 🟩 🟩 🟩 🟩 🟩
@@ -184,13 +184,15 @@ Griddle 123 6/10
 🟩 🟩 🟩 🟩 🟩
 ```
 
-- Header: "Griddle {number} {guesses made}/10" (a perfect game is 6/10, the minimum)
+- Header: "Griddle {number} {guesses made}/{MAX_GUESSES} · best {best}" (best is
+  the puzzle's theoretical minimum guess count; a perfect game matches best)
 - Grid: 5x5 emoji grid showing final state, squares space-separated
   - 🟩 = green (solved)
   - 🟨 = yellow (hint)
   - ⬛ = gray (wrong)
   - ⬜ = gap (empty)
-  - ⭐ = stars in gap positions (up to 4, based on guesses remaining: min(4, 10 - guesses))
+  - ⭐ = stars in gap positions (up to 4, best-relative: 4 at best or better,
+    one fewer per guess over best, floored at 0)
 
 ## Development
 

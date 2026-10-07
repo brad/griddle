@@ -1,6 +1,13 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { dayNumber } from "./game";
+import { dayNumber, best } from "./game";
+import { PUZZLES } from "./data";
+
+// Stars expected for the seeded 7-guess win, best-relative.
+function expectedStars(): number {
+  const puzzle = PUZZLES[(dayNumber() - 1) % PUZZLES.length];
+  return Math.min(4, Math.max(0, 4 - (7 - best(puzzle))));
+}
 
 describe("earned stars on the finished board", () => {
   beforeEach(() => {
@@ -52,8 +59,8 @@ describe("earned stars on the finished board", () => {
 
   it("shows earned stars when viewing the final guess", async () => {
     await import("./main");
-    // 7 guesses -> 3 unused -> 3 stars.
-    expect(document.querySelectorAll("#board1 .cell.star").length).toBe(3);
+    // 7 guesses, best-relative: 4 - (7 - best), clamped 0..4.
+    expect(document.querySelectorAll("#board1 .cell.star").length).toBe(expectedStars());
   });
 
   it("hides stars when flipping back to an earlier guess, restores on the last", async () => {
@@ -69,7 +76,7 @@ describe("earned stars on the finished board", () => {
 
       tabs[6].click(); // forward to the final guess
       await vi.advanceTimersByTimeAsync(300);
-      expect(document.querySelectorAll("#board1 .cell.star").length).toBe(3);
+      expect(document.querySelectorAll("#board1 .cell.star").length).toBe(expectedStars());
     } finally {
       vi.useRealTimers();
     }

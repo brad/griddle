@@ -1,12 +1,13 @@
 // Experimental animated-GIF share: replays the game as a swipe-through of
 // each guess stage, with no letters ever drawn (colors only, like the emoji
-// share text). The header mimics the share text, except the n/10 counter
-// ticks down live as the guesses advance.
+// share text). The header mimics the share text, except the n/12 counter
+// ticks up live as the guesses advance.
 
 import { GIFEncoder, quantize, applyPalette } from "gifenc";
 import { Puzzle } from "./types";
-import { stateAt, gridLetters } from "./game";
+import { stateAt, gridLetters, best } from "./game";
 import { share, starPositions } from "./share";
+import { MAX_GUESSES } from "./data";
 
 export interface GifInput {
   puzzleNumber: number;
@@ -113,7 +114,7 @@ function starsGroup(stars: [number, number][], scale: number): string {
 function headerSvg(o: GifInput, stageIdx: number): string {
   const total = o.guesses.length;
   const counter =
-    !o.won && stageIdx === total - 1 ? "X/10" : `${stageIdx + 1}/10`;
+    !o.won && stageIdx === total - 1 ? "X/" + MAX_GUESSES : `${stageIdx + 1}/${MAX_GUESSES}`;
   return (
     `<text x="${PAD}" y="${PAD + 36}" font-family="${FONT}" font-size="26" font-weight="800" fill="${C_TEXT}">` +
     `Griddle ${o.puzzleNumber}</text>` +
@@ -157,7 +158,7 @@ export function buildGifFrames(o: GifInput): SvgFrame[] {
   const total = o.guesses.length;
   const stages: CellKind[][][] = [];
   for (let i = 0; i < total; i++) stages.push(cellsFor(i, o, letters));
-  const stars = starPositions(total);
+  const stars = starPositions(total, best(o.puzzle));
   const frames: SvgFrame[] = [];
   const still = (stage: number, starScale: number, delayMs: number) =>
     frames.push({ svg: compose(o, letters, stages, stage, null, starScale, stars), delayMs });

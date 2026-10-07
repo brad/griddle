@@ -1,7 +1,7 @@
 import { initDemo, startDemoLoop, stopDemoLoop } from './demo';
 import { Puzzle } from './types';
-import { PUZZLES, VALID, KEY_ROWS } from './data';
-import { dayNumber, stateAt, gridLetters, keyState, complete } from './game';
+import { PUZZLES, VALID, KEY_ROWS, MAX_GUESSES } from './data';
+import { dayNumber, stateAt, gridLetters, keyState, complete, best } from './game';
 import { paintCell } from './cell';
 import { share, starPositions } from './share';
 import { buildAndShareGif } from './gif';
@@ -219,6 +219,8 @@ function pickDaily(): void {
   answers = [...puzzle.h, ...puzzle.v];
   const puzzleNumEl = document.getElementById("puzzleNumber");
   if (puzzleNumEl) puzzleNumEl.textContent = String(puzzleNumber);
+  const bestEl = document.getElementById("bestValue");
+  if (bestEl) bestEl.textContent = String(best(puzzle));
 
   const saved = loadGameState();
   if (saved) {
@@ -242,7 +244,7 @@ function pickDaily(): void {
     message(won ? "Solved in " + guesses.length + " guesses." : "Bust. The words were " + answers.join(", ").toUpperCase() + ".", !won);
     setTimeout(() => showResults(), 250);
   } else if (guesses.length > 0) {
-    message((10 - guesses.length) + " guesses left.");
+    message((MAX_GUESSES - guesses.length) + " guesses left.");
   } else {
     message("Use the keyboard to enter a guess.");
   }
@@ -279,7 +281,7 @@ export function renderBoard(direction: SlideDirection = 'none'): void {
     // Stars are earned for the win: show them only when viewing the final
     // guess, not when flipping back through earlier guesses.
     const starSet = over && selected === guesses.length - 1
-      ? new Set(starPositions(guesses.length).map(([sr, sc]) => sr * 5 + sc))
+      ? new Set(starPositions(guesses.length, best(puzzle)).map(([sr, sc]) => sr * 5 + sc))
       : new Set<number>();
     for (let r = 0; r < 5; r++) {
       for (let c = 0; c < 5; c++) {
@@ -468,7 +470,7 @@ function submit(): void {
     saveGameState();
     return;
   }
-  if (guesses.length === 10) {
+  if (guesses.length === MAX_GUESSES) {
     over = true;
     won = false;
     message("Bust. The words were " + answers.join(", ").toUpperCase() + ".", true);
@@ -477,7 +479,7 @@ function submit(): void {
     saveGameState();
     return;
   }
-  message((10 - guesses.length) + " guesses left.");
+  message((MAX_GUESSES - guesses.length) + " guesses left.");
   saveGameState();
 }
 
@@ -494,7 +496,7 @@ function showResults(): void {
   const resMsg = document.getElementById("resultMessage");
   if (resMsg) {
     resMsg.textContent = won
-      ? "You solved Griddle " + puzzleNumber + " in " + guesses.length + "/10 guesses."
+      ? "You solved Griddle " + puzzleNumber + " in " + guesses.length + "/" + MAX_GUESSES + " guesses."
       : "You used all 10 guesses.";
   }
   updateStats(won, guesses.length);
