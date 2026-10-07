@@ -124,7 +124,8 @@ export function summary(g: string, answers: string[]): Summary {
 /**
  * Best possible score for a puzzle: the theoretical minimum guess count.
  * Uses the stored verified value when present (see scripts/compute-best.cjs);
- * otherwise falls back to the 64-orientation computation below.
+ * otherwise falls back to the 64-orientation computation below, which is
+ * proven equivalent to the exact real-word minimum on all rotation puzzles.
  *
  * Six shared cells sit at different positions in their horizontal vs vertical
  * words and may be completed through either orientation: 2^6 = 64 choices.
@@ -133,10 +134,10 @@ export function summary(g: string, answers: string[]): Summary {
  */
 export function best(puzzle: Puzzle): number {
   if (puzzle.best !== undefined) return puzzle.best;
-  return computeKMin(puzzle);
+  return computeBest(puzzle);
 }
 
-function computeKMin(puzzle: Puzzle): number {
+function computeBest(puzzle: Puzzle): number {
   const words = [...puzzle.h, ...puzzle.v];
   const cells = new Map<string, { pos: number; letter: string }[]>();
   for (let wi = 0; wi < 6; wi++) {

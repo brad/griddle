@@ -7,9 +7,8 @@
  * same puzzles, assuming same words.ts and puzzles.ts inputs). Without --seed, a
  * seed is drawn from Date.now() and logged, so the run can still be reproduced.
  *
- * Each candidate's theoretical minimum guess count k_min (its best) is computed
- * and logged, but no longer filters: best-relative star scoring keeps every
- * puzzle's stars honest regardless of k_min.
+ * Each candidate's best (theoretical minimum guess count) is computed
+ * and logged: best-relative star scoring keeps every puzzle's stars honest.
  *
  * Usage: node scripts/generate-h0-diverse.cjs [count] [--seed N]
  */
@@ -68,13 +67,15 @@ const CELL_MAP = [
 ];
 
 /**
- * Theoretical minimum guess count k_min for a puzzle.
+ * Best (theoretical minimum guess count) for a puzzle.
  * Six shared cells sit at different positions in their horizontal vs vertical
  * words and may be completed through either orientation: 2^6 = 64 choices.
  * For each choice, count distinct letters demanded at each guess position;
- * k_min = min over choices of the max over positions.
+ * best = min over choices of the max over positions.
+ * Verified against the exact real-word set cover on all rotation puzzles
+ * (scripts/compute-best.cjs): 0 diffs.
  */
-function computeMinGuesses(puzzle) {
+function computeBest(puzzle) {
   const words = [...puzzle.h, ...puzzle.v];
   const cells = new Map(); // "r,c" -> [{pos, letter}]
   for (let wi = 0; wi < 6; wi++) {
@@ -154,7 +155,7 @@ for (const [l, c] of Object.entries(h0FirstCounts).sort()) {
 
 // Find ONE puzzle where h[0] starts with target letter
 // batchUsed: words already selected in this batch (to avoid intra-batch overlap)
-// k_min is computed and logged as the puzzle's best score, but does not filter.
+// best is computed and logged as the puzzle's best score, but does not filter.
 function findPuzzleForH0Letter(targetLetter, batchUsed) {
   // Shuffle word arrays (seeded)
   const shuffledV0 = shuffle(words.filter((w) => w[0] === targetLetter));
@@ -191,7 +192,7 @@ function findPuzzleForH0Letter(targetLetter, batchUsed) {
               if (allWords.some((w) => used.has(w) || batchUsed.has(w))) continue;
 
               const puzzle = { h: [h0, h1, h2], v: [v0, v1, v2] };
-              puzzle.kMin = computeMinGuesses(puzzle);
+              puzzle.best = computeBest(puzzle);
               return puzzle;
             }
           }
@@ -239,7 +240,7 @@ while (newPuzzles.length < targetCount && consecutiveMisses < maxConsecutiveMiss
     used.add(w);
     batchUsed.add(w);
   });
-  console.log(`Added for h[0]='${letter}' (k_min=${p.kMin}): h=[${p.h.join(', ')}] v=[${p.v.join(', ')}]`);
+  console.log(`Added for h[0]='${letter}' (best=${p.best}): h=[${p.h.join(', ')}] v=[${p.v.join(', ')}]`);
 }
 
 if (consecutiveMisses >= maxConsecutiveMisses) {
@@ -249,10 +250,10 @@ if (consecutiveMisses >= maxConsecutiveMisses) {
 console.log(`\nFound ${newPuzzles.length} new diverse puzzles:`);
 for (let i = 0; i < newPuzzles.length; i++) {
   const p = newPuzzles[i];
-  console.log(`  { h: [${p.h.map((w) => `"${w}"`).join(', ')}], v: [${p.v.map((w) => `"${w}"`).join(', ')}], best: ${p.kMin} },`);
+  console.log(`  { h: [${p.h.map((w) => `"${w}"`).join(', ')}], v: [${p.v.map((w) => `"${w}"`).join(', ')}], best: ${p.best} },`);
 }
 
-const allPuzzles = [...existingPuzzles, ...newPuzzles.map(({ kMin, ...rest }) => rest)];
+const allPuzzles = [...existingPuzzles, ...newPuzzles.map(({ best, ...rest }) => rest)];
 const allWords = new Set(allPuzzles.flatMap((p) => [...p.h, ...p.v]));
 
 const finalH0Dist = {};
