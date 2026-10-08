@@ -34,3 +34,7 @@ jobs:
           publish_dir: ./dist
           publish_branch: pages
           destination_dir: .
+          # Preserve the custom domain: gh-pages wipes the publish branch on
+          # every deploy, which deleted the CNAME file set by repo Settings.
+          # This re-writes it on each deploy instead.
+          cname: griddle.happylittlecodes.com
