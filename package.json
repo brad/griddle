@@ -8,10 +8,13 @@
     "preview": "vite preview",
     "test": "vitest run",
     "update-words": "bash scripts/update-words.sh",
-    "og-image": "vite-node scripts/generate-og-image.ts"
+    "og-image": "vite-node scripts/generate-og-image.ts",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"scripts/**/*.{js,cjs}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"scripts/**/*.{js,cjs}\""
   },
   "devDependencies": {
     "happy-dom": "^20.14.5",
+    "prettier": "^3.9.9",
     "sharp": "^0.35.4",
     "typescript": "^5.0.0",
     "vite": "^5.0.0",

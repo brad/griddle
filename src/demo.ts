@@ -5,7 +5,8 @@ import { KEY_ROWS } from "./data";
 
 const DEMO_PUZZLE: Puzzle = {
   h: ["snake", "least", "every"],
-  v: ["solve", "aware", "entry"]
+  v: ["solve", "aware", "entry"],
+  best: 6,
 };
 
 const DEMO_ANSWERS = [...DEMO_PUZZLE.h, ...DEMO_PUZZLE.v];
@@ -27,20 +28,28 @@ let demoSlideTimeout: ReturnType<typeof setTimeout> | null = null;
 let autoLoopTimer: ReturnType<typeof setTimeout> | null = null;
 let userInteracted = false;
 
-export type SlideDirection = 'forward' | 'backward' | 'none';
+export type SlideDirection = "forward" | "backward" | "none";
 
-export function renderDemoBoard(index: number, animate: boolean | SlideDirection = 'none'): void {
+export function renderDemoBoard(
+  index: number,
+  animate: boolean | SlideDirection = "none",
+): void {
   const timelineLabel = document.getElementById("demoTimelineLabel");
   const title = document.getElementById("demoTitle");
   const tabs = document.querySelectorAll<HTMLElement>("#demoTabs .demo-tab");
 
   if (!timelineLabel) return;
 
-  let direction: SlideDirection = 'none';
-  if (typeof animate === 'string') {
+  let direction: SlideDirection = "none";
+  if (typeof animate === "string") {
     direction = animate;
   } else if (animate) {
-    direction = index > currentDemoIndex ? 'forward' : index < currentDemoIndex ? 'backward' : 'none';
+    direction =
+      index > currentDemoIndex
+        ? "forward"
+        : index < currentDemoIndex
+          ? "backward"
+          : "none";
   }
   currentDemoIndex = index;
 
@@ -82,16 +91,20 @@ export function renderDemoBoard(index: number, animate: boolean | SlideDirection
     tab.classList.toggle("current", i === index);
   });
   if (title) title.textContent = DEMO_TITLES[index];
-  timelineLabel.textContent = "Showing board after guess " + (index + 1) + ": " + DEMO_GUESSES[index].toUpperCase();
+  timelineLabel.textContent =
+    "Showing board after guess " +
+    (index + 1) +
+    ": " +
+    DEMO_GUESSES[index].toUpperCase();
   renderDemoKeyboard(index);
 
-  if (direction === 'none') {
+  if (direction === "none") {
     fillBoard(board1);
     board1.style.order = "1";
     board2.style.order = "2";
     track.style.transition = "none";
     track.style.transform = "translateX(0)";
-  } else if (direction === 'forward') {
+  } else if (direction === "forward") {
     fillBoard(board2);
     board1.style.order = "1";
     board2.style.order = "2";
@@ -103,7 +116,8 @@ export function renderDemoBoard(index: number, animate: boolean | SlideDirection
     track.style.transform = "translateX(-50%)";
 
     demoSlideTimeout = setTimeout(() => {
-      if (!board1.isConnected || !board2.isConnected || !track.isConnected) return;
+      if (!board1.isConnected || !board2.isConnected || !track.isConnected)
+        return;
       track.style.transition = "none";
       board1.innerHTML = board2.innerHTML;
       board1.style.order = "1";
@@ -111,7 +125,7 @@ export function renderDemoBoard(index: number, animate: boolean | SlideDirection
       track.style.transform = "translateX(0)";
       demoSlideTimeout = null;
     }, 250);
-  } else if (direction === 'backward') {
+  } else if (direction === "backward") {
     fillBoard(board2);
     board2.style.order = "1";
     board1.style.order = "2";
@@ -123,7 +137,8 @@ export function renderDemoBoard(index: number, animate: boolean | SlideDirection
     track.style.transform = "translateX(0)";
 
     demoSlideTimeout = setTimeout(() => {
-      if (!board1.isConnected || !board2.isConnected || !track.isConnected) return;
+      if (!board1.isConnected || !board2.isConnected || !track.isConnected)
+        return;
       track.style.transition = "none";
       board1.innerHTML = board2.innerHTML;
       board1.style.order = "1";
@@ -149,7 +164,8 @@ export function renderDemoKeyboard(index: number): void {
     for (const c of row) {
       if (c === "↵" || c === "⌫") continue;
       const k = document.createElement("span");
-      k.className = "key demo-key" + (s[c.toLowerCase()] ? " " + s[c.toLowerCase()] : "");
+      k.className =
+        "key demo-key" + (s[c.toLowerCase()] ? " " + s[c.toLowerCase()] : "");
       k.textContent = c;
       r.appendChild(k);
     }

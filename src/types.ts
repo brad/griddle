@@ -1,6 +1,8 @@
 export interface Puzzle {
   h: string[];
   v: string[];
+  // Verified real-word minimum guess count (see scripts/compute-best.cjs).
+  best: number;
 }
 
 export interface State {
@@ -13,4 +15,4 @@ export interface Summary {
   yellow: number;
 }
 
-export type ShareStyle = 'waffle';
+export type ShareStyle = "waffle";
