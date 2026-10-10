@@ -35,7 +35,8 @@ export function normalizeGuessDist(dist: unknown): number[] {
   if (dist.length === DIST_BUCKET_COUNT) {
     return dist.map((n) => (typeof n === "number" ? n : 0));
   }
-  // Legacy shape: 5 buckets covering guess counts 6..10.
+  // Legacy shape: 5 buckets for 6, 7, 8, 9, and 10+ guesses. (Not 6..12;
+  // the old code capped everything at 10+.)
   if (dist.length === 5) {
     dist.forEach((n, i) => {
       if (typeof n === "number") fresh[i + 4] += n;
