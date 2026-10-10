@@ -34,4 +34,3 @@ jobs:
           publish_dir: ./dist
           publish_branch: pages
           destination_dir: .
-          cname: griddle.happylittlecodes.com
