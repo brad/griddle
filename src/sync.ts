@@ -74,6 +74,7 @@ interface FirebaseCtx {
   signInWithPopup: typeof import("firebase/auth").signInWithPopup;
   signOut: typeof import("firebase/auth").signOut;
   GoogleAuthProvider: typeof import("firebase/auth").GoogleAuthProvider;
+  FacebookAuthProvider: typeof import("firebase/auth").FacebookAuthProvider;
   onAuthStateChanged: typeof import("firebase/auth").onAuthStateChanged;
   doc: typeof import("firebase/firestore").doc;
   getDoc: typeof import("firebase/firestore").getDoc;
@@ -98,6 +99,7 @@ async function ensureCtx(): Promise<FirebaseCtx> {
     signInWithPopup: authMod.signInWithPopup,
     signOut: authMod.signOut,
     GoogleAuthProvider: authMod.GoogleAuthProvider,
+    FacebookAuthProvider: authMod.FacebookAuthProvider,
     onAuthStateChanged: authMod.onAuthStateChanged,
     doc: fsMod.doc,
     getDoc: fsMod.getDoc,
@@ -163,9 +165,15 @@ export async function initSync(events: SyncEvents): Promise<void> {
   });
 }
 
-export async function signIn(): Promise<void> {
+export type AuthProviderId = "google" | "facebook";
+
+export async function signIn(provider: AuthProviderId): Promise<void> {
   const c = await ensureCtx();
-  await c.signInWithPopup(c.auth, new c.GoogleAuthProvider());
+  const authProvider =
+    provider === "facebook"
+      ? new c.FacebookAuthProvider()
+      : new c.GoogleAuthProvider();
+  await c.signInWithPopup(c.auth, authProvider);
 }
 
 export async function signOut(): Promise<void> {
