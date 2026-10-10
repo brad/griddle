@@ -1,5 +1,5 @@
 import { initDemo, startDemoLoop, stopDemoLoop } from './demo';
-import { Puzzle } from './types';
+import type { Puzzle, Stats, GameState } from './types';
 import { PUZZLES, VALID, KEY_ROWS, MAX_GUESSES } from './data';
 import { dayNumber, stateAt, gridLetters, keyState, complete, best } from './game';
 import { paintCell } from './cell';
@@ -13,25 +13,14 @@ import {
   normalizeGuessDist,
   normalizeStarDist,
 } from './stats';
-
-interface Stats {
-  played: number;
-  wins: number;
-  currentStreak: number;
-  maxStreak: number;
-  guessDist: number[];
-  starDist: number[];
-  lastPlayed: number;
-}
-
-interface GameState {
-  puzzleNumber: number;
-  guesses: string[];
-  selected: number;
-  input: string;
-  over: boolean;
-  won: boolean;
-}
+import {
+  initSync,
+  isSyncConfigured,
+  schedulePush,
+  signIn,
+  signOut,
+  touchUpdatedAt,
+} from './sync';
 
 export type SlideDirection = 'forward' | 'backward' | 'none';
 
@@ -109,6 +98,8 @@ function loadStats(): Stats {
 
 function saveStats(stats: Stats): void {
   localStorage.setItem(LS_STATS, JSON.stringify(stats));
+  touchUpdatedAt();
+  schedulePush();
 }
 
 function saveGameState(): void {
@@ -121,6 +112,8 @@ function saveGameState(): void {
     won
   };
   localStorage.setItem(LS_GAME, JSON.stringify(state));
+  touchUpdatedAt();
+  schedulePush();
 }
 
 function loadGameState(): GameState | null {
@@ -262,6 +255,48 @@ function renderStats(): void {
   if (tabGuesses) tabGuesses.onclick = () => { statsTab = "guesses"; renderStats(); };
   const tabStars = document.getElementById("tabStars");
   if (tabStars) tabStars.onclick = () => { statsTab = "stars"; renderStats(); };
+}
+
+function renderSyncBody(email: string | null): void {
+  const body = document.getElementById("syncBody");
+  if (!body) return;
+  body.innerHTML = "";
+  if (email) {
+    const label = document.createElement("div");
+    label.style.fontSize = ".8rem";
+    label.style.color = "var(--muted)";
+    label.textContent = `Signed in as ${email}`;
+    const btn = document.createElement("button");
+    btn.textContent = "Sign out";
+    btn.style.marginTop = "8px";
+    btn.onclick = () => {
+      signOut().catch(() => {});
+    };
+    body.append(label, btn);
+  } else {
+    const btn = document.createElement("button");
+    btn.textContent = "Sign in with Google to sync";
+    btn.onclick = () => {
+      signIn().catch(() => {});
+    };
+    const note = document.createElement("div");
+    note.style.fontSize = ".75rem";
+    note.style.color = "var(--muted)";
+    note.style.marginTop = "8px";
+    note.textContent = "Sync stats and today's game across devices.";
+    body.append(btn, note);
+  }
+}
+
+function initSyncUI(): void {
+  const section = document.getElementById("syncSection");
+  if (!section || !isSyncConfigured()) return;
+  section.hidden = false;
+  renderSyncBody(null);
+  initSync({
+    onUser: (email) => renderSyncBody(email),
+    onRemoteApplied: () => location.reload(),
+  }).catch(() => {});
 }
 
 function pickDaily(): void {
@@ -655,6 +690,7 @@ function reset(): void {
 // Event Listeners setup
 function initUI(): void {
   migrateStorageKeys();
+  initSyncUI();
   const help = document.getElementById("help");
   const results = document.getElementById("results");
   const stats = document.getElementById("stats");
