@@ -4,6 +4,7 @@ import {
   DIST_BUCKET_COUNT,
   DIST_MIN_GUESSES,
   STAR_BUCKETS,
+  backfillZeroStars,
   defaultStats,
   normalizeGuessDist,
   normalizeStarDist,
@@ -47,5 +48,29 @@ describe("star distribution", () => {
   it("starts fresh when missing or misshapen", () => {
     expect(normalizeStarDist(undefined)).toEqual([0, 0, 0, 0, 0]);
     expect(normalizeStarDist([1, 2])).toEqual([0, 0, 0, 0, 0]);
+  });
+});
+
+describe("zero-star backfill", () => {
+  it("seeds starDist[0] from 10+ guess buckets when starDist is empty", () => {
+    const stats = defaultStats();
+    stats.guessDist[8] = 3; // migrated old 10+ wins
+    stats.guessDist[10] = 1; // 12-guess wins
+    backfillZeroStars(stats);
+    expect(stats.starDist).toEqual([4, 0, 0, 0, 0]);
+  });
+
+  it("does nothing once starDist has data, so new games are not double-counted", () => {
+    const stats = defaultStats();
+    stats.guessDist[8] = 3;
+    stats.starDist[4] = 1;
+    backfillZeroStars(stats);
+    expect(stats.starDist).toEqual([0, 0, 0, 0, 1]);
+  });
+
+  it("is a no-op when there are no 10+ wins", () => {
+    const stats = defaultStats();
+    backfillZeroStars(stats);
+    expect(stats.starDist).toEqual([0, 0, 0, 0, 0]);
   });
 });

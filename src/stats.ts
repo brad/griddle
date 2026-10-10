@@ -51,3 +51,19 @@ export function normalizeStarDist(dist: unknown): number[] {
   }
   return fresh;
 }
+
+// One-time backfill: wins of 10+ guesses always earn 0 stars (best tops out
+// at 6), so the old "10+" guess buckets map exactly onto starDist[0]. Runs
+// only while starDist is still empty, so games recorded under the new system
+// are never double-counted.
+export function backfillZeroStars(stats: StatsShape): void {
+  let tenPlus = 0;
+  for (let g = 10; g < DIST_MIN_GUESSES + DIST_BUCKET_COUNT; g++) {
+    tenPlus += stats.guessDist[g - DIST_MIN_GUESSES];
+  }
+  if (tenPlus === 0) return;
+  for (const c of stats.starDist) {
+    if (c !== 0) return; // already tracking stars; don't double-count
+  }
+  stats.starDist[0] = tenPlus;
+}

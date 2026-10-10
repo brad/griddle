@@ -9,6 +9,7 @@ import {
   DIST_BUCKET_COUNT,
   DIST_MIN_GUESSES,
   STAR_BUCKETS,
+  backfillZeroStars,
   defaultStats,
   normalizeGuessDist,
   normalizeStarDist,
@@ -94,12 +95,14 @@ function loadStats(): Stats {
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
-      return {
+      const stats: Stats = {
         ...defaultStats(),
         ...parsed,
         guessDist: normalizeGuessDist(parsed.guessDist),
         starDist: normalizeStarDist(parsed.starDist),
       };
+      backfillZeroStars(stats);
+      return stats;
     } catch {
       return defaultStats();
     }
