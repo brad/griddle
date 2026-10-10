@@ -5,6 +5,12 @@ import { dayNumber, stateAt, gridLetters, keyState, complete, best } from './gam
 import { paintCell } from './cell';
 import { share, starPositions } from './share';
 import { buildAndShareGif } from './gif';
+import {
+  DIST_BUCKET_COUNT,
+  DIST_MIN_GUESSES,
+  defaultStats,
+  normalizeGuessDist,
+} from './stats';
 
 interface Stats {
   played: number;
@@ -84,23 +90,17 @@ function loadStats(): Stats {
   const stored = localStorage.getItem(LS_STATS);
   if (stored) {
     try {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      return {
+        ...defaultStats(),
+        ...parsed,
+        guessDist: normalizeGuessDist(parsed.guessDist),
+      };
     } catch {
       return defaultStats();
     }
   }
   return defaultStats();
-}
-
-function defaultStats(): Stats {
-  return {
-    played: 0,
-    wins: 0,
-    currentStreak: 0,
-    maxStreak: 0,
-    guessDist: [0, 0, 0, 0, 0],
-    lastPlayed: 0
-  };
 }
 
 function saveStats(stats: Stats): void {
@@ -156,8 +156,8 @@ function updateStats(won: boolean, guessCount: number): void {
     if (stats.currentStreak > stats.maxStreak) {
       stats.maxStreak = stats.currentStreak;
     }
-    const idx = Math.min(guessCount - 6, 4);
-    if (idx >= 0 && idx < 5) {
+    const idx = guessCount - DIST_MIN_GUESSES;
+    if (idx >= 0 && idx < DIST_BUCKET_COUNT) {
       stats.guessDist[idx]++;
     }
   } else {
@@ -197,7 +197,7 @@ function renderStats(): void {
     <div style="font-size:.75rem;color:var(--muted);margin-bottom:8px">GUESS DISTRIBUTION</div>
     <div style="display:flex;flex-direction:column;gap:4px">
       ${stats.guessDist.map((count, i) => {
-        const guessNum = i + 6;
+        const guessNum = i + DIST_MIN_GUESSES;
         const barWidth = (count / maxDist) * 100;
         return `
           <div style="display:flex;align-items:center;gap:8px">
