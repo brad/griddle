@@ -35,10 +35,10 @@ describe('UI Layout and CSS Constraints', () => {
     const htmlPath = path.resolve(__dirname, 'index.html');
     const htmlContent = fs.readFileSync(htmlPath, 'utf8');
 
-    expect(htmlContent).toContain('<meta property="og:url" content="https://brad.github.io/griddle/">');
-    expect(htmlContent).toContain('<meta property="og:image" content="https://brad.github.io/griddle/og-image.gif">');
-    expect(htmlContent).toContain('<meta property="og:image:secure_url" content="https://brad.github.io/griddle/og-image.gif">');
-    expect(htmlContent).toContain('<meta name="twitter:image" content="https://brad.github.io/griddle/og-image.gif">');
+    expect(htmlContent).toContain('<meta property="og:url" content="https://griddle.happylittlecodes.com/">');
+    expect(htmlContent).toContain('<meta property="og:image" content="https://griddle.happylittlecodes.com/og-image.gif">');
+    expect(htmlContent).toContain('<meta property="og:image:secure_url" content="https://griddle.happylittlecodes.com/og-image.gif">');
+    expect(htmlContent).toContain('<meta name="twitter:image" content="https://griddle.happylittlecodes.com/og-image.gif">');
   });
   it('index.html defines the star pop animation for finished-game stars', () => {
     const htmlPath = path.resolve(__dirname, 'index.html');
