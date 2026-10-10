@@ -20,6 +20,7 @@ import { fileURLToPath } from 'url';
 import sharp from 'sharp';
 import { GIFEncoder, quantize, applyPalette } from 'gifenc';
 import { stateAt, gridLetters, validatePuzzle, best } from '../src/game';
+import { MAX_GUESSES } from '../src/data';
 import { WORDS } from '../src/words';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -167,7 +168,7 @@ function sceneSvg(grid: string, overlay = ''): string {
     <text x="0" y="105" class="title-main">GRIDDLE</text>
 
     <text x="0" y="175" class="desc">Untangle six interlocking five-letter words in a 5×5 grid.</text>
-    <text x="0" y="210" class="desc">Solve the daily puzzle in 10 guesses or fewer!</text>
+    <text x="0" y="210" class="desc">Solve the daily puzzle in ${MAX_GUESSES} guesses or fewer!</text>
 
     <!-- Badges -->
     <g transform="translate(0, 270)">
@@ -177,7 +178,7 @@ function sceneSvg(grid: string, overlay = ''): string {
       </g>
       <g transform="translate(142, 0)">
         <rect x="0" y="0" width="145" height="42" rx="21" fill="#1a2332" stroke="#52627a" stroke-width="1.5"/>
-        <text x="72.5" y="26" class="badge-text" text-anchor="middle">🎯 10 Guesses</text>
+        <text x="72.5" y="26" class="badge-text" text-anchor="middle">🎯 ${MAX_GUESSES} Guesses</text>
       </g>
       <g transform="translate(299, 0)">
         <rect x="0" y="0" width="175" height="42" rx="21" fill="#1a2332" stroke="#52627a" stroke-width="1.5"/>

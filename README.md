@@ -4,7 +4,7 @@
 
 **Griddle** is a daily word puzzle. Six five-letter words — three across, three
 down — are woven together into a 5×5 grid, sharing nine intersections. Find
-them all within **10 guesses**.
+them all within **12 guesses**.
 
 ## How to play
 
@@ -24,7 +24,7 @@ them all within **10 guesses**.
 Results copy as emoji, ready to paste anywhere:
 
 ```
-Griddle 123 6/10
+Griddle 123 6/12
 🟩 🟩 🟩 🟩 🟩
 🟩 ⭐ 🟩 ⭐ 🟩
 🟩 🟩 🟩 🟩 🟩

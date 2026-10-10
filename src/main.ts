@@ -550,7 +550,7 @@ function showResults(): void {
   if (resMsg) {
     resMsg.textContent = won
       ? "You solved Griddle " + puzzleNumber + " in " + guesses.length + "/" + MAX_GUESSES + " guesses."
-      : "You used all 10 guesses.";
+      : "You used all " + MAX_GUESSES + " guesses.";
   }
   updateStats(won, guesses.length, best(puzzle));
   renderShare();
