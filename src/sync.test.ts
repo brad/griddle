@@ -16,6 +16,7 @@ function payload(updatedAt: number): SyncPayload {
       currentStreak: 1,
       maxStreak: 2,
       guessDist: [0, 1, 1, 0, 0],
+      starDist: [0, 0, 1, 1, 0],
       lastPlayed: 42,
     },
     game: null,
