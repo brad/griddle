@@ -51,3 +51,52 @@ export function normalizeStarDist(dist: unknown): number[] {
   }
   return fresh;
 }
+
+// Per-day game log. One entry per completed game; the raw material for any
+// future stat, so history is never lossy again.
+const LS_HISTORY = "griddle_history";
+
+export interface HistoryEntry {
+  day: number;
+  guesses: number;
+  stars: number;
+  won: boolean;
+}
+
+function isHistoryEntry(value: unknown): value is HistoryEntry {
+  if (typeof value !== "object" || value === null) return false;
+  const e = value as Record<string, unknown>;
+  return (
+    typeof e.day === "number" &&
+    typeof e.guesses === "number" &&
+    typeof e.stars === "number" &&
+    typeof e.won === "boolean"
+  );
+}
+
+export function loadHistory(): HistoryEntry[] {
+  try {
+    const raw = localStorage.getItem(LS_HISTORY);
+    if (!raw) return [];
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(isHistoryEntry);
+  } catch {
+    return [];
+  }
+}
+
+export function recordHistory(entry: HistoryEntry): void {
+  try {
+    const history = loadHistory();
+    const last = history[history.length - 1];
+    if (last && last.day === entry.day) {
+      history[history.length - 1] = entry;
+    } else {
+      history.push(entry);
+    }
+    localStorage.setItem(LS_HISTORY, JSON.stringify(history));
+  } catch {
+    // Storage unavailable; the game works without it.
+  }
+}

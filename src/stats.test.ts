@@ -1,12 +1,14 @@
 // @vitest-environment happy-dom
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import {
   DIST_BUCKET_COUNT,
   DIST_MIN_GUESSES,
   STAR_BUCKETS,
   defaultStats,
+  loadHistory,
   normalizeGuessDist,
   normalizeStarDist,
+  recordHistory,
 } from "./stats";
 
 describe("guess distribution", () => {
@@ -47,5 +49,44 @@ describe("star distribution", () => {
   it("starts fresh when missing or misshapen", () => {
     expect(normalizeStarDist(undefined)).toEqual([0, 0, 0, 0, 0]);
     expect(normalizeStarDist([1, 2])).toEqual([0, 0, 0, 0, 0]);
+  });
+});
+
+describe("per-day history", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("starts empty and round-trips entries", () => {
+    expect(loadHistory()).toEqual([]);
+    recordHistory({ day: 100, guesses: 7, stars: 3, won: true });
+    recordHistory({ day: 101, guesses: 12, stars: 0, won: false });
+    expect(loadHistory()).toEqual([
+      { day: 100, guesses: 7, stars: 3, won: true },
+      { day: 101, guesses: 12, stars: 0, won: false },
+    ]);
+  });
+
+  it("replaces rather than duplicates a same-day entry", () => {
+    recordHistory({ day: 100, guesses: 7, stars: 3, won: true });
+    recordHistory({ day: 100, guesses: 8, stars: 2, won: true });
+    expect(loadHistory()).toEqual([
+      { day: 100, guesses: 8, stars: 2, won: true },
+    ]);
+  });
+
+  it("ignores malformed storage and entries", () => {
+    localStorage.setItem("griddle_history", "not json");
+    expect(loadHistory()).toEqual([]);
+    localStorage.setItem(
+      "griddle_history",
+      JSON.stringify([
+        { day: 100, guesses: 7, stars: 3, won: true },
+        { bogus: 1 },
+      ]),
+    );
+    expect(loadHistory()).toEqual([
+      { day: 100, guesses: 7, stars: 3, won: true },
+    ]);
   });
 });
