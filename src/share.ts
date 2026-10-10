@@ -15,9 +15,12 @@ export function header(puzzleNumber: number, won: boolean, guessCount: number, b
 // stars are best-relative: 4 at best or better, one fewer per guess over
 // best, floored at 0. Exported so the finished board can show the same stars
 // the share text does.
+export function starCount(guessCount: number, bestScore: number): number {
+  return Math.min(4, Math.max(0, 4 - (guessCount - bestScore)));
+}
+
 export function starPositions(guessCount: number, bestScore: number): [number, number][] {
-  const starCount = Math.min(4, Math.max(0, 4 - (guessCount - bestScore)));
-  return GAP_POSITIONS.slice(0, starCount).map(([r, c]) => [r, c] as [number, number]);
+  return GAP_POSITIONS.slice(0, starCount(guessCount, bestScore)).map(([r, c]) => [r, c] as [number, number]);
 }
 
 function gridStateEmoji(puzzle: Puzzle, guesses: string[], answers: string[], bestScore: number): string[] {

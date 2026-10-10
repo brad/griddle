@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect } from 'vitest';
-import { header, share, starPositions } from './share';
+import { header, share, starCount, starPositions } from './share';
 import { best } from './game';
 import { MAX_GUESSES } from './data';
 import { PUZZLES } from './data';
@@ -58,6 +58,16 @@ describe('share formatting', () => {
     expect(starPositions(10, 6)).toEqual([]);
     expect(starPositions(12, 6)).toEqual([]);
     expect(starPositions(8, 4)).toEqual([]);
+  });
+
+  it('starCount is best-relative, capped at 4, floored at 0', () => {
+    expect(starCount(6, 6)).toBe(4);
+    expect(starCount(4, 6)).toBe(4);
+    expect(starCount(7, 6)).toBe(3);
+    expect(starCount(9, 6)).toBe(1);
+    expect(starCount(10, 6)).toBe(0);
+    expect(starCount(12, 6)).toBe(0);
+    expect(starCount(3, 3)).toBe(4);
   });
 
   it('best() matches the generator k_min on rotation puzzles', () => {
