@@ -3,8 +3,10 @@ import { describe, it, expect } from "vitest";
 import {
   DIST_BUCKET_COUNT,
   DIST_MIN_GUESSES,
+  STAR_BUCKETS,
   defaultStats,
   normalizeGuessDist,
+  normalizeStarDist,
 } from "./stats";
 
 describe("guess distribution", () => {
@@ -29,5 +31,21 @@ describe("guess distribution", () => {
     expect(normalizeGuessDist(null)).toEqual(new Array(11).fill(0));
     expect(normalizeGuessDist([1, 2, 3])).toEqual(new Array(11).fill(0));
     expect(normalizeGuessDist("nope")).toEqual(new Array(11).fill(0));
+  });
+});
+
+describe("star distribution", () => {
+  it("has one bucket per star level (0..4)", () => {
+    expect(STAR_BUCKETS).toBe(5);
+    expect(defaultStats().starDist).toEqual([0, 0, 0, 0, 0]);
+  });
+
+  it("keeps a current-shape distribution, sanitizing entries", () => {
+    expect(normalizeStarDist([1, 2, "x", 0, 3])).toEqual([1, 2, 0, 0, 3]);
+  });
+
+  it("starts fresh when missing or misshapen", () => {
+    expect(normalizeStarDist(undefined)).toEqual([0, 0, 0, 0, 0]);
+    expect(normalizeStarDist([1, 2])).toEqual([0, 0, 0, 0, 0]);
   });
 });

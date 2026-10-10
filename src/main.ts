@@ -3,13 +3,15 @@ import { Puzzle } from './types';
 import { PUZZLES, VALID, KEY_ROWS, MAX_GUESSES } from './data';
 import { dayNumber, stateAt, gridLetters, keyState, complete, best } from './game';
 import { paintCell } from './cell';
-import { share, starPositions } from './share';
+import { share, starCount, starPositions } from './share';
 import { buildAndShareGif } from './gif';
 import {
   DIST_BUCKET_COUNT,
   DIST_MIN_GUESSES,
+  STAR_BUCKETS,
   defaultStats,
   normalizeGuessDist,
+  normalizeStarDist,
 } from './stats';
 
 interface Stats {
@@ -18,6 +20,7 @@ interface Stats {
   currentStreak: number;
   maxStreak: number;
   guessDist: number[];
+  starDist: number[];
   lastPlayed: number;
 }
 
@@ -95,6 +98,7 @@ function loadStats(): Stats {
         ...defaultStats(),
         ...parsed,
         guessDist: normalizeGuessDist(parsed.guessDist),
+        starDist: normalizeStarDist(parsed.starDist),
       };
     } catch {
       return defaultStats();
@@ -139,7 +143,7 @@ function clearGameState(): void {
   localStorage.removeItem(LS_GAME);
 }
 
-function updateStats(won: boolean, guessCount: number): void {
+function updateStats(won: boolean, guessCount: number, bestScore: number): void {
   const stats = loadStats();
   const today = dayNumber();
 
@@ -164,7 +168,59 @@ function updateStats(won: boolean, guessCount: number): void {
     stats.currentStreak = 0;
   }
 
+  const stars = starCount(guessCount, bestScore);
+  if (stars >= 0 && stars < STAR_BUCKETS) {
+    stats.starDist[stars]++;
+  }
+
   saveStats(stats);
+}
+
+let statsTab: "guesses" | "stars" = "guesses";
+
+function distBar(label: string, count: number, maxCount: number): string {
+  const barWidth = (count / Math.max(maxCount, 1)) * 100;
+  return `
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="width:28px;text-align:right;font-variant-numeric:tabular-nums">${label}</span>
+      <div style="flex:1;height:8px;background:var(--cell);border-radius:4px;overflow:hidden">
+        <div style="width:${barWidth}%;height:100%;background:var(--green);transition:width .3s"></div>
+      </div>
+      <span style="width:36px;text-align:right;font-variant-numeric:tabular-nums">${count}</span>
+    </div>
+  `;
+}
+
+function renderGuessDist(stats: Stats): string {
+  const maxDist = Math.max(...stats.guessDist, 1);
+  return `
+    <div style="font-size:.75rem;color:var(--muted);margin-bottom:8px">GUESS DISTRIBUTION</div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      ${stats.guessDist
+        .map((count, i) => distBar(String(i + DIST_MIN_GUESSES), count, maxDist))
+        .join("")}
+    </div>
+  `;
+}
+
+function renderStarDist(stats: Stats): string {
+  const total = stats.starDist.reduce((a, b) => a + b, 0);
+  const avg =
+    total > 0
+      ? (stats.starDist.reduce((a, b, i) => a + b * i, 0) / total).toFixed(1)
+      : "–";
+  const maxDist = Math.max(...stats.starDist, 1);
+  const rows = [];
+  for (let s = STAR_BUCKETS - 1; s >= 0; s--) {
+    rows.push(distBar(`${s}★`, stats.starDist[s], maxDist));
+  }
+  return `
+    <div style="font-size:.75rem;color:var(--muted);margin-bottom:8px">STAR DISTRIBUTION</div>
+    <div style="font-size:.8rem;margin-bottom:8px">Average <strong>${avg} ★</strong> over ${total} game${total === 1 ? "" : "s"}</div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      ${rows.join("")}
+    </div>
+  `;
 }
 
 function renderStats(): void {
@@ -173,7 +229,8 @@ function renderStats(): void {
   if (!content) return;
 
   const winPct = stats.played > 0 ? Math.round((stats.wins / stats.played) * 100) : 0;
-  const maxDist = Math.max(...stats.guessDist, 1);
+  const tabStyle = (active: boolean) =>
+    `flex:1;padding:6px;font-size:.8rem;${active ? "font-weight:700;border-color:var(--accent);" : ""}`;
 
   content.innerHTML = `
     <div style="display:flex;justify-content:space-around;margin-bottom:16px;font-size:.9rem">
@@ -194,23 +251,17 @@ function renderStats(): void {
         <div style="color:var(--muted);font-size:.7rem">MAX STREAK</div>
       </div>
     </div>
-    <div style="font-size:.75rem;color:var(--muted);margin-bottom:8px">GUESS DISTRIBUTION</div>
-    <div style="display:flex;flex-direction:column;gap:4px">
-      ${stats.guessDist.map((count, i) => {
-        const guessNum = i + DIST_MIN_GUESSES;
-        const barWidth = (count / maxDist) * 100;
-        return `
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="width:28px;text-align:right;font-variant-numeric:tabular-nums">${guessNum}</span>
-            <div style="flex:1;height:8px;background:var(--cell);border-radius:4px;overflow:hidden">
-              <div style="width:${barWidth}%;height:100%;background:var(--green);transition:width .3s"></div>
-            </div>
-            <span style="width:36px;text-align:right;font-variant-numeric:tabular-nums">${count}</span>
-          </div>
-        `;
-      }).join("")}
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button id="tabGuesses" style="${tabStyle(statsTab === "guesses")}">Guesses</button>
+      <button id="tabStars" style="${tabStyle(statsTab === "stars")}">Stars</button>
     </div>
+    ${statsTab === "guesses" ? renderGuessDist(stats) : renderStarDist(stats)}
   `;
+
+  const tabGuesses = document.getElementById("tabGuesses");
+  if (tabGuesses) tabGuesses.onclick = () => { statsTab = "guesses"; renderStats(); };
+  const tabStars = document.getElementById("tabStars");
+  if (tabStars) tabStars.onclick = () => { statsTab = "stars"; renderStats(); };
 }
 
 function pickDaily(): void {
@@ -499,7 +550,7 @@ function showResults(): void {
       ? "You solved Griddle " + puzzleNumber + " in " + guesses.length + "/" + MAX_GUESSES + " guesses."
       : "You used all 10 guesses.";
   }
-  updateStats(won, guesses.length);
+  updateStats(won, guesses.length, best(puzzle));
   renderShare();
   renderShareBtn();
   document.getElementById("results")?.classList.add("show");
