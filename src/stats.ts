@@ -1,3 +1,5 @@
+import type { Stats } from "./types";
+
 // Guess distribution covers winning guess counts 2..12. Best varies per
 // puzzle, so the range stays fixed and stats accumulate across puzzles.
 export const DIST_MIN_GUESSES = 2;
@@ -7,17 +9,7 @@ export const DIST_BUCKET_COUNT = 11;
 // completed game; busts land at 0 since the formula bottoms out there.
 export const STAR_BUCKETS = 5;
 
-export interface StatsShape {
-  played: number;
-  wins: number;
-  currentStreak: number;
-  maxStreak: number;
-  guessDist: number[];
-  starDist: number[];
-  lastPlayed: number;
-}
-
-export function defaultStats(): StatsShape {
+export function defaultStats(): Stats {
   return {
     played: 0,
     wins: 0,

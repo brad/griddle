@@ -1,5 +1,5 @@
 import { initDemo, startDemoLoop, stopDemoLoop } from './demo';
-import { Puzzle } from './types';
+import type { Puzzle, Stats, GameState } from './types';
 import { PUZZLES, VALID, KEY_ROWS, MAX_GUESSES } from './data';
 import { dayNumber, stateAt, gridLetters, keyState, complete, best } from './game';
 import { paintCell } from './cell';
@@ -14,25 +14,14 @@ import {
   normalizeStarDist,
   recordHistory,
 } from './stats';
-
-interface Stats {
-  played: number;
-  wins: number;
-  currentStreak: number;
-  maxStreak: number;
-  guessDist: number[];
-  starDist: number[];
-  lastPlayed: number;
-}
-
-interface GameState {
-  puzzleNumber: number;
-  guesses: string[];
-  selected: number;
-  input: string;
-  over: boolean;
-  won: boolean;
-}
+import {
+  initSync,
+  isSyncConfigured,
+  schedulePush,
+  signIn,
+  signOut,
+  touchUpdatedAt,
+} from './sync';
 
 export type SlideDirection = 'forward' | 'backward' | 'none';
 
@@ -110,6 +99,8 @@ function loadStats(): Stats {
 
 function saveStats(stats: Stats): void {
   localStorage.setItem(LS_STATS, JSON.stringify(stats));
+  touchUpdatedAt();
+  schedulePush();
 }
 
 function saveGameState(): void {
@@ -122,6 +113,8 @@ function saveGameState(): void {
     won
   };
   localStorage.setItem(LS_GAME, JSON.stringify(state));
+  touchUpdatedAt();
+  schedulePush();
 }
 
 function loadGameState(): GameState | null {
@@ -264,6 +257,85 @@ function renderStats(): void {
   if (tabGuesses) tabGuesses.onclick = () => { statsTab = "guesses"; renderStats(); };
   const tabStars = document.getElementById("tabStars");
   if (tabStars) tabStars.onclick = () => { statsTab = "stars"; renderStats(); };
+}
+
+const GOOGLE_G_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>`;
+const FACEBOOK_F_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>`;
+
+function providerButton(
+  provider: "google" | "facebook",
+  label: string,
+  logo: string,
+  background: string,
+  color: string,
+  border: string,
+): HTMLButtonElement {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.setAttribute(
+    "style",
+    `display:flex;align-items:center;justify-content:center;gap:10px;width:100%;` +
+      `padding:10px;border-radius:6px;font-size:.9rem;font-weight:500;cursor:pointer;` +
+      `background:${background};color:${color};border:1px solid ${border};margin-top:8px`,
+  );
+  btn.innerHTML = `${logo}<span>${label}</span>`;
+  btn.onclick = () => {
+    signIn(provider).catch(() => {});
+  };
+  return btn;
+}
+
+function renderSyncBody(email: string | null): void {
+  const body = document.getElementById("syncBody");
+  if (!body) return;
+  body.innerHTML = "";
+  if (email) {
+    const label = document.createElement("div");
+    label.style.fontSize = ".8rem";
+    label.style.color = "var(--muted)";
+    label.textContent = `Signed in as ${email}`;
+    const btn = document.createElement("button");
+    btn.textContent = "Sign out";
+    btn.style.marginTop = "8px";
+    btn.onclick = () => {
+      signOut().catch(() => {});
+    };
+    body.append(label, btn);
+  } else {
+    const googleBtn = providerButton(
+      "google",
+      "Sign in with Google",
+      GOOGLE_G_SVG,
+      "#fff",
+      "#1f1f1f",
+      "#dadce0",
+    );
+    const facebookBtn = providerButton(
+      "facebook",
+      "Continue with Facebook",
+      FACEBOOK_F_SVG,
+      "#1877f2",
+      "#fff",
+      "#1877f2",
+    );
+    const note = document.createElement("div");
+    note.style.fontSize = ".75rem";
+    note.style.color = "var(--muted)";
+    note.style.marginTop = "8px";
+    note.textContent = "Sync stats and today's game across devices.";
+    body.append(googleBtn, facebookBtn, note);
+  }
+}
+
+function initSyncUI(): void {
+  const section = document.getElementById("syncSection");
+  if (!section || !isSyncConfigured()) return;
+  section.hidden = false;
+  renderSyncBody(null);
+  initSync({
+    onUser: (email) => renderSyncBody(email),
+    onRemoteApplied: () => location.reload(),
+  }).catch(() => {});
 }
 
 function pickDaily(): void {
@@ -657,6 +729,7 @@ function reset(): void {
 // Event Listeners setup
 function initUI(): void {
   migrateStorageKeys();
+  initSyncUI();
   const help = document.getElementById("help");
   const results = document.getElementById("results");
   const stats = document.getElementById("stats");

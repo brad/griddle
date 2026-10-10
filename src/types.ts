@@ -5,6 +5,25 @@ export interface Puzzle {
   best: number;
 }
 
+export interface Stats {
+  played: number;
+  wins: number;
+  currentStreak: number;
+  maxStreak: number;
+  guessDist: number[];
+  starDist: number[];
+  lastPlayed: number;
+}
+
+export interface GameState {
+  puzzleNumber: number;
+  guesses: string[];
+  selected: number;
+  input: string;
+  over: boolean;
+  won: boolean;
+}
+
 export interface State {
   green: boolean[][];
   yellow: string[][][];

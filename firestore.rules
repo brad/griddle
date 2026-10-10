@@ -1,0 +1,12 @@
+rules_version = '2';
+
+// Griddle cloud sync rules. Paste into the Firebase console under
+// Firestore Database -> Rules. Each signed-in user reads and writes only
+// their own document.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
