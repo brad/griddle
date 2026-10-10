@@ -12,6 +12,7 @@ import {
   defaultStats,
   normalizeGuessDist,
   normalizeStarDist,
+  recordHistory,
 } from './stats';
 
 interface Stats {
@@ -172,6 +173,7 @@ function updateStats(won: boolean, guessCount: number, bestScore: number): void 
   if (stars >= 0 && stars < STAR_BUCKETS) {
     stats.starDist[stars]++;
   }
+  recordHistory({ day: today, guesses: guessCount, stars, won });
 
   saveStats(stats);
 }
