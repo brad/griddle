@@ -195,6 +195,9 @@ export function encodeGif(frames: RawFrame[]): Uint8Array {
     gif.writeFrame(index, f.width, f.height, {
       palette,
       delay: f.delayMs,
+      // Explicit "do not dispose": every frame is a full opaque render, so
+      // decoders must not clear or blend with the previous frame.
+      dispose: 1,
       repeat: i === 0 ? 0 : undefined,
     });
   });
@@ -206,8 +209,19 @@ async function rasterizeSvg(svg: string): Promise<Uint8ClampedArray> {
   const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
   try {
     const img = new Image();
+    img.width = GIF_W;
+    img.height = GIF_H;
+    const loaded = new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("SVG frame failed to load"));
+    });
     img.src = url;
-    await img.decode();
+    await loaded;
+    await img.decode().catch(() => {});
+    // decode() can resolve before SVG layout finishes, so drawImage may
+    // capture a blank or partial frame. Two animation frames give the
+    // renderer a chance to complete layout first.
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     const canvas = document.createElement("canvas");
     canvas.width = GIF_W;
     canvas.height = GIF_H;
