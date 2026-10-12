@@ -24,8 +24,8 @@ describe('share formatting', () => {
     expect(result).toContain('⬛'); // gray squares
     // With 0 stars (12 guesses, 6 over best), gaps should show ⬜
     expect(result).toContain('⬜');
-    // Squares are space-separated for readability
-    expect(result).toContain('🟩 🟩');
+    // Squares are joined with no spacing
+    expect(result).toContain('🟩🟩');
   });
 
   it('shows up to 4 stars, best-relative', () => {

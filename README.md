@@ -25,11 +25,11 @@ Results copy as emoji, ready to paste anywhere:
 
 ```
 Griddle 123 6/12
-🟩 🟩 🟩 🟩 🟩
-🟩 ⭐ 🟩 ⭐ 🟩
-🟩 🟩 🟩 🟩 🟩
-🟩 ⭐ 🟩 ⭐ 🟩
-🟩 🟩 🟩 🟩 🟩
+🟩🟩🟩🟩🟩
+🟩⭐🟩⭐🟩
+🟩🟩🟩🟩🟩
+🟩⭐🟩⭐🟩
+🟩🟩🟩🟩🟩
 ```
 
 ## Development
