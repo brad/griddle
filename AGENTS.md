@@ -181,16 +181,16 @@ puzzles use fair, familiar answer words; guess validation uses the full `WORDS` 
 
 ```
 Griddle 123 6/12 · best 6
-🟩 🟩 🟩 🟩 🟩
-🟩 ⭐ 🟩 ⭐ 🟩
-🟩 🟩 🟩 🟩 🟩
-🟩 ⭐ 🟩 ⭐ 🟩
-🟩 🟩 🟩 🟩 🟩
+🟩🟩🟩🟩🟩
+🟩⭐🟩⭐🟩
+🟩🟩🟩🟩🟩
+🟩⭐🟩⭐🟩
+🟩🟩🟩🟩🟩
 ```
 
 - Header: "Griddle {number} {guesses made}/{MAX_GUESSES} · best {best}" (best is
   the puzzle's theoretical minimum guess count; a perfect game matches best)
-- Grid: 5x5 emoji grid showing final state, squares space-separated
+- Grid: 5x5 emoji grid showing final state, squares joined with no spacing
   - 🟩 = green (solved)
   - 🟨 = yellow (hint)
   - ⬛ = gray (wrong)

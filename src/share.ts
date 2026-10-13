@@ -41,7 +41,7 @@ function gridStateEmoji(puzzle: Puzzle, guesses: string[], answers: string[], be
         cells.push("⬛");
       }
     }
-    rows.push(cells.join(" "));
+    rows.push(cells.join(""));
   }
   return rows;
 }
